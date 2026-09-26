@@ -9,15 +9,16 @@ const configPath = path.join(root, 'config.json');
 
 if (!fs.existsSync(configPath)) {
   const demo = {
-    jwtSecret: 'DEMO_' + crypto.randomBytes(32).toString('hex'),
-    telegramBotToken: '',
-    telegramChatId: '',
+    jwtSecret: process.env.JWT_SECRET || ('DEMO_' + crypto.randomBytes(32).toString('hex')),
+    telegramBotToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    telegramChatId: process.env.TELEGRAM_CHAT_ID || '',
     allowedOrigin: null
   };
   fs.writeFileSync(configPath, JSON.stringify(demo, null, 2));
-  console.log('✓ config.json создан');
-}
-
+  console.log('config.json создан');
+  if (demo.telegramBotToken) console.log('Telegram-бот подключён');
+  else console.log('Telegram отключён (нет TELEGRAM_BOT_TOKEN)');
+                                          }
 console.log('\n→ node migrate.js');
 execSync('node migrate.js', { stdio: 'inherit', cwd: root });
 
