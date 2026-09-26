@@ -1,0 +1,6 @@
+{
+  "jwtSecret": "replace-me",
+  "telegramBotToken": "",
+  "telegramChatId": "",
+  "allowedOrigin": null
+}
