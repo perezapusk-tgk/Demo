@@ -250,8 +250,129 @@ async function loadStudios() {
 async function loadLicenses() {
   const wrap = document.getElementById('licensesWrap');
   wrap.innerHTML = '<div class="empty">Загружаем…</div>';
-  wrap.innerHTML = '<div class="empty">Эндпоинт лицензий пока не реализован.<br>Функционал добавим в следующей итерации.</div>';
-}
+
+  let res;
+  try {
+    res = await api('/api/platform/licenses');
+  } catch (e) {
+    wrap.innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    return;
+  }
+
+  const list = res.licenses || [];
+
+  let html = '<div class="card">';
+  html += '<h3 style="margin-top:0;">Генератор лицензий</h3>';
+  html += '<p style="color:var(--dim2);font-size:0.82rem;margin-bottom:12px;">Создайте пакет ключей для продажи студиям.</p>';
+  html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">';
+  html += '<select id="genTier" class="input" style="flex:1;min-width:150px;">';
+  html += '<option value="start">Start — 200 000 ₽</option>';
+  html += '<option value="business">Business — 500 000 ₽</option>';
+  html += '<option value="enterprise">Enterprise — 1 000 000 ₽</option>';
+  html += '</select>';
+  html += '<input id="genCount" class="input" type="number" value="1" min="1" max="100" style="width:100px;">';
+  html += '<button class="btn" id="genBtn">Сгенерировать</button>';
+  html += '</div>';
+  html += '<div class="msg" id="genMsg"></div>';
+  html += '<div id="genResult"></div>';
+  html += '</div>';
+
+  html += '<div class="card" style="padding:0;overflow-x:auto;">';
+  html += '<table class="table"><thead><tr>';
+  html += '<th>Ключ</th><th>Тариф</th><th>Статус</th><th>Студия</th><th>Лимит</th><th></th>';
+  html += '</tr></thead><tbody>';
+
+  if (list.length === 0) {
+    html += '<tr><td colspan="6" class="empty">Лицензий пока нет. Сгенерируйте первый пакет выше.</td></tr>';
+  }
+
+  list.forEach(function(l) {
+    const tierName = { start: 'Start', business: 'Business', enterprise: 'Enterprise' }[l.tier] || l.tier;
+    const limit = l.max_tenants > 0 ? l.max_tenants + ' кл.' : '∞';
+    const studioName = l.studio_name || '—';
+    html += '<tr>' +
+      '<td><span class="mono">' + l.key + '</span>' +
+        '<button class="copy-btn" data-copy="' + l.key + '">Copy</button></td>' +
+      '<td><span class="tier-badge tier-' + l.tier + '">' + tierName + '</span></td>' +
+      '<td><span class="status ' + l.status + '">' + l.status + '</span></td>' +
+      '<td>' + studioName + '</td>' +
+      '<td>' + limit + '</td>' +
+      '<td>' +
+        (l.status === 'active'
+          ? '<button class="btn-small btn-danger" data-revoke="' + l.id + '">Отозвать</button>'
+          : (l.status === 'revoked'
+            ? '<button class="btn-small btn-ghost" data-restore="' + l.id + '">Восстановить</button>'
+            : '<span style="color:var(--dim2);font-size:0.75rem;">Не активирована</span>')) +
+      '</td>' +
+    '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+
+  document.getElementById('genBtn').addEventListener('click', async function() {
+    const tier = document.getElementById('genTier').value;
+    const count = parseInt(document.getElementById('genCount').value, 10) || 1;
+    const msg = document.getElementById('genMsg');
+    const resultWrap = document.getElementById('genResult');
+    msg.className = 'msg'; msg.textContent = 'Генерируем…';
+    try {
+      const r = await api('/api/platform/licenses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier: tier, count: count })
+      });
+      msg.className = 'msg ok';
+      msg.textContent = '✓ Создано ' + r.count + ' лицензий';
+      resultWrap.innerHTML = '<div style="background:var(--panel2);padding:14px;border-radius:10px;margin-top:12px;font-family:monospace;font-size:0.82rem;">' +
+        r.keys.map(function(k) { return '<div style="padding:4px 0;">' + k + '</div>'; }).join('') +
+        '</div><div style="color:var(--dim2);font-size:0.78rem;margin-top:8px;">Скопируйте ключи и передайте покупателю.</div>';
+      loadLicenses();
+      loadSummary();
+    } catch (e) {
+      msg.className = 'msg err';
+      msg.textContent = 'Ошибка: ' + e.message;
+    }
+  });
+
+  wrap.querySelectorAll('button[data-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      navigator.clipboard.writeText(btn.dataset.copy).then(function() {
+        btn.textContent = '✓';
+        setTimeout(function() { btn.textContent = 'Copy'; }, 1200);
+      }).catch(function() { alert(btn.dataset.copy); });
+    });
+  });
+
+  wrap.querySelectorAll('button[data-revoke]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Отозвать лицензию? Студия потеряет доступ к панели.')) return;
+      btn.disabled = true;
+      try {
+        await api('/api/platform/licenses/' + btn.dataset.revoke, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'revoked' })
+        });
+        loadLicenses();
+      } catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
+    });
+  });
+
+  wrap.querySelectorAll('button[data-restore]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      btn.disabled = true;
+      try {
+        await api('/api/platform/licenses/' + btn.dataset.restore, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'issued' })
+        });
+        loadLicenses();
+      } catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
+    });
+  });
+      }
 
 /* AUTO LOGIN */
 (function() {
