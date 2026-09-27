@@ -408,7 +408,6 @@ app.post('/api/studio/tenants', studioAuth, (req, res) => {
   } catch (e) { res.status(500).json({ error: 'internal_error', message: e.message }); }
 });
 
-app.delete('/api/studio/tenants/:
 app.delete('/api/studio/tenants/:id', studioAuth, (req, res) => {
   const rec = db.prepare('SELECT * FROM tenants WHERE id = ? AND studio_id = ?').get(req.params.id, req.studio.studio_id);
   if (!rec) return res.status(404).json({ error: 'not found' });
