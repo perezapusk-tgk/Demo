@@ -24,6 +24,9 @@ if (!fs.existsSync(configPath)) {
 console.log('\n→ Запускаю migrate.js (тенант-БД)');
 execSync('node migrate.js', { stdio: 'inherit', cwd: root });
 
+console.log('\n→ Запускаю migrate-tenants.js (мультитенантность)');
+execSync('node migrate-tenants.js', { stdio: 'inherit', cwd: root });
+
 // 3. Платформенная БД (platform.db)
 if (!fs.existsSync(path.join(root, 'platform.db'))) {
   console.log('\n→ Запускаю migrate-platform.js (платформа)');
