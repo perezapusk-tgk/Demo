@@ -554,21 +554,31 @@ async function doLookup() {
   let bookings;
   try { ({ bookings } = await api('/api/bookings?phone=' + encodeURIComponent(phone))); }
   catch (e) { resultEl.innerHTML = '<div class="lookup-result">Не удалось выполнить поиск.</div>'; return; }
-  const active = bookings.filter(b => b.status === 'confirmed');
-  if (active.length === 0) { resultEl.innerHTML = '<div class="lookup-result">Активных записей с этим номером не найдено.</div>'; return; }
-
-  const svcById = {}; CATALOG.services.forEach(s => svcById[s.id] = s.name);
+    const active = bookings.filter(b => b.status === 'confirmed' || b.status === 'completed');
+    const svcById = {}; CATALOG.services.forEach(s => svcById[s.id] = s.name);
   resultEl.innerHTML = active.map(b => {
     const className = (CATALOG.classes.find(c => c.id === b.vehicle_class_id) || {}).name || '';
     const svcNames = JSON.parse(b.services_json).map(id => svcById[id] || '?').join(', ');
     const dateLabel = new Date(b.date).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
-    return `<div class="lookup-result">
-      <b>№ ${b.booking_code}</b> · ${className} · ${svcNames}<br>
-      ${dateLabel}, ${pad(b.hour)}:00 · Итого ${rub(b.total)}
-      <div style="margin-top:8px;"><button class="linklike" data-code="${b.booking_code}" data-phone="${b.phone}">Отменить запись</button></div>
-    </div>`;
-  }).join('');
 
+    let statusBadge = '';
+    if (b.status === 'completed') {
+      statusBadge = '<div style="margin-top:8px; padding:10px 14px; background:rgba(99,198,140,0.15); border-radius:8px; color:#63C68C; font-weight:700;">✅ Машина готова — можно забирать</div>';
+    } else {
+      statusBadge = '<div style="margin-top:8px; padding:10px 14px; background:rgba(70,194,224,0.10); border-radius:8px; color:#46C2E0; font-weight:700;">⏳ Ожидает — машина в работе</div>';
+    }
+
+    const cancelBtn = (b.status === 'confirmed')
+      ? '<div style="margin-top:8px;"><button class="linklike" data-code="' + b.booking_code + '" data-phone="' + b.phone + '">Отменить запись</button></div>'
+      : '';
+
+    return '<div class="lookup-result">' +
+      '<b>№ ' + b.booking_code + '</b> · ' + className + ' · ' + svcNames + '<br>' +
+      dateLabel + ', ' + pad(b.hour) + ':00 · Итого ' + rub(b.total) +
+      statusBadge +
+      cancelBtn +
+    '</div>';
+  }).join('');
   resultEl.querySelectorAll('.linklike').forEach(btn => btn.addEventListener('click', async () => {
     btn.disabled = true; btn.textContent = 'Отменяем…';
     try {
