@@ -234,6 +234,73 @@ app.get('/api/admin/export/bookings', authMiddleware, (req, res) => {
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.send('\uFEFF' + csv);
 });
+/* ===================== УПРАВЛЕНИЕ УСЛУГАМИ ===================== */
+
+app.get('/api/admin/services', authMiddleware, (req, res) => {
+  const rows = db.prepare('SELECT s.*, c.name as class_name FROM services s LEFT JOIN classes c ON c.id = s.vehicle_class ORDER BY s.vehicle_class, s.id').all();
+  res.json({ services: rows });
+});
+
+app.patch('/api/admin/services/:id', authMiddleware, (req, res) => {
+  const id = req.params.id;
+  const { price, name, duration } = req.body || {};
+  const rec = db.prepare('SELECT * FROM services WHERE id = ?').get(id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  db.prepare('UPDATE services SET price = ?, name = ?, duration = ? WHERE id = ?').run(
+    price !== undefined ? parseInt(price, 10) : rec.price,
+    name !== undefined ? name : rec.name,
+    duration !== undefined ? parseInt(duration, 10) : rec.duration,
+    id
+  );
+  res.json({ ok: true });
+});
+
+/* ===================== УПРАВЛЕНИЕ МОЙЩИКАМИ ===================== */
+
+app.post('/api/admin/washers', authMiddleware, (req, res) => {
+  const { name, phone, commission } = req.body || {};
+  if (!name || !name.trim()) return res.status(400).json({ error: 'name required' });
+  const info = db.prepare('INSERT INTO washers(name, phone, commission) VALUES(?,?,?)').run(
+    name.trim(),
+    (phone || '').trim(),
+    commission !== undefined ? parseFloat(commission) : 0.5
+  );
+  res.json({ ok: true, id: info.lastInsertRowid });
+});
+
+app.patch('/api/admin/washers/:id', authMiddleware, (req, res) => {
+  const id = req.params.id;
+  const { name, phone, commission } = req.body || {};
+  const rec = db.prepare('SELECT * FROM washers WHERE id = ?').get(id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  db.prepare('UPDATE washers SET name = ?, phone = ?, commission = ? WHERE id = ?').run(
+    name !== undefined ? name : rec.name,
+    phone !== undefined ? phone : rec.phone,
+    commission !== undefined ? parseFloat(commission) : rec.commission,
+    id
+  );
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/washers/:id', authMiddleware, (req, res) => {
+  const id = req.params.id;
+  const rec = db.prepare('SELECT * FROM washers WHERE id = ?').get(id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  db.prepare('DELETE FROM washers WHERE id = ?').run(id);
+  res.json({ ok: true });
+});
+
+/* ===================== МАШИНА ГОТОВА ===================== */
+
+app.post('/api/admin/bookings/:id/complete', authMiddleware, (req, res) => {
+  const id = req.params.id;
+  const rec = db.prepare('SELECT * FROM bookings WHERE id = ?').get(id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  db.prepare('UPDATE bookings SET status = ?, updated_at = ? WHERE id = ?').run('completed', new Date().toISOString(), id);
+  const msg = '🚗 <b>Машина готова</b>\n№ ' + rec.booking_code + '\n' + rec.name + ', ' + rec.phone + '\nМожно забирать!';
+  sendTelegram(msg);
+  res.json({ ok: true });
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log('Server listening on', PORT));
