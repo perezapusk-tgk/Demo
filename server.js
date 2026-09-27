@@ -417,6 +417,71 @@ app.delete('/api/studio/tenants/:id', studioAuth, (req, res) => {
 
 /* ============ ВЛАДЕЛЕЦ ПЛАТФОРМЫ ============ */
 
+app.get('/api/platform/licenses', (req, res) => {
+  const h = req.headers['authorization'];
+  if (!h) return res.status(401).json({ error: 'no auth' });
+  try {
+    const p = jwt.verify(h.split(' ')[1], CONFIG.jwtSecret);
+    if (p.role !== 'platform_owner') return res.status(403).json({ error: 'not owner' });
+  } catch (e) { return res.status(401).json({ error: 'invalid' }); }
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const licenses = platformDb.prepare('SELECT * FROM licenses ORDER BY id DESC').all();
+  const enriched = licenses.map(function(l) {
+    let studioName = null;
+    if (l.studio_id) {
+      const s = platformDb.prepare('SELECT name FROM studios WHERE id = ?').get(l.studio_id);
+      if (s) studioName = s.name;
+    }
+    return { ...l, studio_name: studioName };
+  });
+  res.json({ licenses: enriched });
+});
+
+app.post('/api/platform/licenses', (req, res) => {
+  const h = req.headers['authorization'];
+  if (!h) return res.status(401).json({ error: 'no auth' });
+  try {
+    const p = jwt.verify(h.split(' ')[1], CONFIG.jwtSecret);
+    if (p.role !== 'platform_owner') return res.status(403).json({ error: 'not owner' });
+  } catch (e) { return res.status(401).json({ error: 'invalid' }); }
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const { tier, count, notes } = req.body || {};
+  if (!['start', 'business', 'enterprise'].includes(tier)) return res.status(400).json({ error: 'invalid_tier' });
+  const cnt = Math.max(1, Math.min(100, parseInt(count, 10) || 1));
+  const limits = { start: [10, 1], business: [100, 10], enterprise: [-1, -1] };
+  const [max_tenants, max_verticals] = limits[tier];
+  const prefixes = { start: 'STRT', business: 'BIZN', enterprise: 'ENTR' };
+  const crypto = require('crypto');
+  const generated = [];
+  const ins = platformDb.prepare('INSERT INTO licenses (key, tier, max_tenants, max_verticals, status, notes, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+  for (let i = 0; i < cnt; i++) {
+    const part = () => crypto.randomBytes(2).toString('hex').toUpperCase();
+    const key = 'RPLK-' + prefixes[tier] + '-' + part() + '-' + part() + '-' + part();
+    ins.run(key, tier, max_tenants, max_verticals, 'issued', notes || ('Пакет ' + cnt + ' шт.'), new Date().toISOString());
+    generated.push(key);
+  }
+  res.json({ ok: true, keys: generated, tier: tier, count: cnt });
+});
+
+app.patch('/api/platform/licenses/:id', (req, res) => {
+  const h = req.headers['authorization'];
+  if (!h) return res.status(401).json({ error: 'no auth' });
+  try {
+    const p = jwt.verify(h.split(' ')[1], CONFIG.jwtSecret);
+    if (p.role !== 'platform_owner') return res.status(403).json({ error: 'not owner' });
+  } catch (e) { return res.status(401).json({ error: 'invalid' }); }
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const { status } = req.body || {};
+  if (!['issued', 'active', 'revoked'].includes(status)) return res.status(400).json({ error: 'invalid_status' });
+  const rec = platformDb.prepare('SELECT * FROM licenses WHERE id = ?').get(req.params.id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  platformDb.prepare('UPDATE licenses SET status = ? WHERE id = ?').run(status, req.params.id);
+  if (status === 'revoked') {
+    platformDb.prepare('UPDATE studios SET status = ? WHERE license_key = ?').run('suspended', rec.key);
+  }
+  res.json({ ok: true });
+});
+
 app.post('/api/platform/login', loginLimiter, (req, res) => {
   if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
   const { username, password } = req.body || {};
