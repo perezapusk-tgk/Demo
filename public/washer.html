@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Кабинет мойщика — RapidLink</title>
+<style>
+:root{ --ink:#0A1216; --panel:#111C21; --panel2:#0D171B; --foam:#EFF6F7; --dim:rgba(239,246,247,0.62); --dim2:rgba(239,246,247,0.42); --line:rgba(239,246,247,0.10); --accent:#46C2E0; --busy:#E5694F; --ok:#63C68C; }
+*{box-sizing:border-box;}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--ink);color:var(--foam);padding:20px;margin:0;padding-bottom:100px;}
+.container{max-width:640px;margin:0 auto;}
+h1{font-size:1.3rem;margin:0 0 6px;}
+h3{font-size:0.95rem;margin:22px 0 10px;color:var(--dim);}
+.card{background:var(--panel);padding:18px 20px;border-radius:14px;border:1px solid var(--line);margin-bottom:14px;}
+.btn{background:var(--accent);color:#06171C;padding:12px 18px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:0.92rem;width:100%;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-ok{background:var(--ok);color:#06171C;}
+.input{padding:12px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--foam);font-size:1rem;width:100%;font-family:inherit;}
+.msg{font-size:0.88rem;margin-top:10px;min-height:18px;}
+.msg.err{color:var(--busy);}
+.msg.ok{color:var(--ok);}
+.booking{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px;}
+.booking .code{font-family:'SF Mono',Menlo,monospace;font-size:1rem;color:var(--accent);font-weight:700;}
+.booking .time{font-size:1.5rem;font-weight:700;margin:6px 0;}
+.booking .line{font-size:0.85rem;color:var(--dim);margin:3px 0;}
+.booking .price{font-weight:700;color:var(--foam);}
+.booking .actions{margin-top:12px;display:flex;gap:8px;}
+.booking .actions button{flex:1;padding:10px;font-size:0.85rem;border-radius:8px;cursor:pointer;font-weight:700;border:none;}
+.tag{display:inline-block;padding:2px 9px;border-radius:20px;font-size:0.72rem;font-weight:700;margin-left:6px;}
+.tag.confirmed{background:rgba(70,194,224,0.15);color:var(--accent);}
+.tag.in_progress{background:rgba(229,105,79,0.15);color:var(--busy);}
+.tag.completed{background:rgba(99,198,140,0.15);color:var(--ok);}
+.tag.cancelled{background:rgba(239,246,247,0.08);color:var(--dim2);}
+.summary{background:linear-gradient(135deg, rgba(70,194,224,0.15), rgba(99,198,140,0.10));border:1px solid rgba(70,194,224,0.3);border-radius:14px;padding:16px 18px;margin-top:16px;}
+.summary .row{display:flex;justify-content:space-between;font-size:0.88rem;padding:5px 0;color:var(--dim);}
+.summary .row.big{border-top:1px solid var(--line);margin-top:8px;padding-top:12px;font-size:1.1rem;font-weight:700;color:var(--foam);}
+.day-chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;}
+.day-chip{flex-shrink:0;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-size:0.82rem;text-align:center;cursor:pointer;color:var(--dim);}
+.day-chip.active{border-color:var(--accent);background:rgba(70,194,224,0.12);color:var(--foam);}
+.empty{text-align:center;padding:40px 20px;color:var(--dim2);}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.logout{background:none;border:none;color:var(--dim2);font-size:0.85rem;cursor:pointer;text-decoration:underline;}
+.main-tabs{display:flex;gap:6px;margin-bottom:16px;}
+.main-tab{flex:1;padding:11px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:0.88rem;color:var(--dim);text-align:center;font-weight:600;}
+.main-tab.active{background:var(--accent);color:#06171C;border-color:var(--accent);}
+.pay-card{background:linear-gradient(135deg, rgba(70,194,224,0.12), rgba(99,198,140,0.08));border:1px solid rgba(70,194,224,0.25);border-radius:14px;padding:18px;margin-bottom:14px;text-align:center;}
+.pay-card .label{color:var(--dim2);font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;}
+.pay-card .amount{font-size:2rem;font-weight:700;color:var(--accent);margin:6px 0;font-family:'SF Mono',Menlo,monospace;}
+.pay-card .sub{font-size:0.8rem;color:var(--dim);}
+.periods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px;}
+.period{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;}
+.period .lbl{font-size:0.7rem;color:var(--dim2);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:6px;}
+.period .val{font-size:1.05rem;font-weight:700;color:var(--foam);font-family:'SF Mono',Menlo,monospace;}
+.period .sm{font-size:0.72rem;color:var(--dim2);margin-top:4px;}
+.days-table{width:100%;border-collapse:collapse;font-size:0.82rem;}
+.days-table th,.days-table td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left;}
+.days-table th{color:var(--dim2);font-weight:600;font-size:0.72rem;text-transform:uppercase;}
+.days-table td.num{text-align:right;font-family:'SF Mono',Menlo,monospace;}
+.days-table tr.today-row{background:rgba(70,194,224,0.05);}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="loginView">
+    <h1>Кабинет мойщика</h1>
+    <p style="color:var(--dim);font-size:0.9rem;margin:6px 0 20px;">Введите телефон, который указан в админке</p>
+    <div class="card">
+      <input id="phone" class="input" type="tel" placeholder="+7 ..." autocomplete="off">
+      <div class="msg" id="loginMsg"></div>
+      <button class="btn" id="loginBtn" style="margin-top:12px;">Войти</button>
+    </div>
+  </div>
+
+  <div id="mainView" style="display:none;">
+    <div class="top">
+      <div>
+        <h1 id="washerName">—</h1>
+        <div style="color:var(--dim2);font-size:0.82rem;" id="washerSub">—</div>
+      </div>
+      <button class="logout" id="logoutBtn">Выйти</button>
+    </div>
+
+    <div class="main-tabs">
+      <div class="main-tab active" data-tab="work">Работа</div>
+      <div class="main-tab" data-tab="salary">Зарплата</div>
+    </div>
+
+    <div id="tab-work">
+      <div class="day-chips" id="dayChips"></div>
+      <div id="bookingsWrap"></div>
+      <div class="summary" id="summaryBox" style="display:none;">
+        <div style="font-weight:700;margin-bottom:8px;font-size:1rem;">Итог за день</div>
+        <div class="row"><span>Выручка (записи)</span><span id="sumTotal">0 ₽</span></div>
+        <div class="row"><span>Ваша доля (<span id="sumComm">50</span>%)</span><span id="sumShare">0 ₽</span></div>
+        <div class="row"><span>Штрафы</span><span id="sumFines" style="color:var(--busy);">−0 ₽</span></div>
+        <div class="row big"><span>К выплате</span><span id="sumPayout">0 ₽</span></div>
+      </div>
+      <div class="msg" id="mainMsg"></div>
+    </div>
+
+    <div id="tab-salary" style="display:none;">
+      <div class="pay-card">
+        <div class="label">Заработано за сегодня</div>
+        <div class="amount" id="payToday">0 ₽</div>
+        <div class="sub" id="payTodaySub">—</div>
+      </div>
+
+      <div class="periods">
+        <div class="period">
+          <div class="lbl">Неделя</div>
+          <div class="val" id="payWeek">0 ₽</div>
+          <div class="sm" id="payWeekSub">7 дней</div>
+        </div>
+        <div class="period">
+          <div class="lbl">Месяц</div>
+          <div class="val" id="payMonth">0 ₽</div>
+          <div class="sm" id="payMonthSub">30 дней</div>
+        </div>
+        <div class="period">
+          <div class="lbl">Комиссия</div>
+          <div class="val" id="payComm">50%</div>
+          <div class="sm">ваша доля</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">Разбивка по дням (30 дней)</h3>
+        <div id="daysTableWrap">
+          <div class="empty">Загружаем…</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0;">Запросить выплату</h3>
+        <p style="color:var(--dim2);font-size:0.82rem;margin-bottom:10px;">Администратор получит уведомление в Telegram и свяжется с вами.</p>
+        <input id="payoutAmount" class="input" type="number" placeholder="Сумма, ₽" style="margin-bottom:10px;">
+        <input id="payoutComment" class="input" placeholder="Комментарий (необязательно)" style="margin-bottom:10px;">
+        <button class="btn" id="requestPayoutBtn">Запросить выплату</button>
+        <div class="msg" id="payoutMsg"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = '';
+let washer = null;
+let selectedDate = new Date().toISOString().slice(0, 10);
+let currentTab = 'work';
+
+function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtDate(d) { return d.toISOString().slice(0, 10); }
+
+async function api(path, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(function() { return null; });
+  if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; throw err; }
+  return data;
+}
+
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const phone = document.getElementById('phone').value.trim();
+  const msg = document.getElementById('loginMsg');
+  if (!phone) { msg.className = 'msg err'; msg.textContent = 'Введите телефон'; return; }
+  msg.className = 'msg'; msg.textContent = 'Проверяем…';
+  try {
+    const res = await api('/api/washer/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: phone })
+    });
+    token = res.token;
+    washer = res.washer;
+    showMain();
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Телефон не найден. Обратитесь к администратору.';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  token = ''; washer = null;
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('loginView').style.display = '';
+  document.getElementById('phone').value = '';
+});
+
+function showMain() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = '';
+  document.getElementById('washerName').textContent = washer.name;
+  document.getElementById('washerSub').textContent = washer.phone + ' · комиссия ' + Math.round(washer.commission * 100) + '%';
+  renderDays();
+  loadBookings();
+}
+
+document.querySelectorAll('.main-tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.main-tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    currentTab = tab.dataset.tab;
+    document.getElementById('tab-work').style.display = (currentTab === 'work') ? '' : 'none';
+    document.getElementById('tab-salary').style.display = (currentTab === 'salary') ? '' : 'none';
+    if (currentTab === 'salary') loadSalary();
+  });
+});
+
+function renderDays() {
+  const chips = document.getElementById('dayChips');
+  const days = [];
+  const today = new Date();
+  for (let i = 0; i < 7; i++) { const d = new Date(today); d.setDate(today.getDate() + i); days.push(d); }
+  chips.innerHTML = days.map(function(d, i) {
+    const iso = fmtDate(d);
+    const label = i === 0 ? 'Сегодня' : i === 1 ? 'Завтра' : d.toLocaleDateString('ru-RU', { weekday: 'short' });
+    return '<div class="day-chip ' + (iso === selectedDate ? 'active' : '') + '" data-date="' + iso + '">' + label + '<br><span style="font-size:0.9rem;font-weight:700;">' + d.getDate() + '</span></div>';
+  }).join('');
+  chips.querySelectorAll('.day-chip').forEach(function(el) {
+    el.addEventListener('click', function() { selectedDate = el.dataset.date; renderDays(); loadBookings(); });
+  });
+}
+
+async function loadBookings() {
+  const wrap = document.getElementById('bookingsWrap');
+  const msg = document.getElementById('mainMsg');
+  msg.textContent = '';
+  wrap.innerHTML = '<div class="empty">Загружаем…</div>';
+
+  let res;
+  try {
+    res = await api('/api/washer/bookings?date=' + selectedDate);
+  } catch (e) {
+    if (e.status === 401) { document.getElementById('logoutBtn').click(); return; }
+    wrap.innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    return;
+  }
+
+  const list = res.bookings || [];
+  if (list.length === 0) {
+    wrap.innerHTML = '<div class="empty">На этот день у вас нет записей</div>';
+    document.getElementById('summaryBox').style.display = 'none';
+    return;
+  }
+
+  wrap.innerHTML = '';
+  list.forEach(function(b) {
+    let services = b.services_json;
+    try { services = JSON.parse(b.services_json).join(', '); } catch (e) {}
+
+    const div = document.createElement('div');
+    div.className = 'booking';
+
+    let actions = '';
+    if (b.status === 'confirmed') {
+      actions = '<button class="btn" data-act="start" data-id="' + b.id + '">Начать работу</button>';
+    } else if (b.status === 'in_progress') {
+      actions = '<button class="btn btn-ok" data-act="done" data-id="' + b.id + '">Готово ✓</button>';
+    } else if (b.status === 'completed') {
+      actions = '<div style="color:var(--ok);font-weight:700;text-align:center;width:100%;padding:6px;">Выполнено ✓</div>';
+    } else if (b.status === 'cancelled') {
+      actions = '<div style="color:var(--dim2);text-align:center;width:100%;padding:6px;">Отменено клиентом</div>';
+    }
+
+    div.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;">' +
+        '<span class="code">№ ' + b.booking_code + '</span>' +
+        '<span class="tag ' + b.status + '">' + b.status + '</span>' +
+      '</div>' +
+      '<div class="time">' + pad(b.hour) + ':00</div>' +
+      '<div class="line"><b style="color:var(--foam);">' + b.name + '</b> · ' + b.phone + '</div>' +
+      '<div class="line">' + (b.class_name || '') + ' · ' + services + '</div>' +
+      '<div class="line">Сумма: <span class="price">' + rub(b.total) + '</span></div>' +
+      '<div class="actions">' + actions + '</div>';
+
+    wrap.appendChild(div);
+  });
+
+  wrap.querySelectorAll('button[data-act]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      const id = btn.dataset.id;
+      const act = btn.dataset.act;
+      const newStatus = act === 'start' ? 'in_progress' : 'completed';
+      if (act === 'done' && !confirm('Отметить как выполненное?')) return;
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        await api('/api/washer/bookings/' + id + '/status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+        loadBookings();
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+        btn.disabled = false;
+        btn.textContent = act === 'start' ? 'Начать работу' : 'Готово ✓';
+      }
+    });
+  });
+
+  const sum = res.summary || {};
+  document.getElementById('summaryBox').style.display = '';
+  document.getElementById('sumTotal').textContent = rub(sum.total_sum);
+  document.getElementById('sumComm').textContent = Math.round((sum.commission || 0.5) * 100);
+  document.getElementById('sumShare').textContent = rub(Math.round(sum.total_sum * (sum.commission || 0.5)));
+  document.getElementById('sumFines').textContent = '−' + rub(sum.fines_sum);
+  document.getElementById('sumPayout').textContent = rub(sum.payout);
+}
+
+async function loadSalary() {
+  let res;
+  try {
+    res = await api('/api/washer/earnings');
+  } catch (e) {
+    if (e.status === 401) { document.getElementById('logoutBtn').click(); return; }
+    document.getElementById('daysTableWrap').innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    return;
+  }
+
+  document.getElementById('payToday').textContent = rub(res.today.total_payout);
+  document.getElementById('payTodaySub').textContent = res.today.total_bookings + ' записей · ' + rub(res.today.total_share) + ' доля − ' + rub(res.today.total_fines) + ' штрафы';
+
+  document.getElementById('payWeek').textContent = rub(res.week.total_payout);
+  document.getElementById('payWeekSub').textContent = res.week.total_bookings + ' зап.';
+
+  document.getElementById('payMonth').textContent = rub(res.month.total_payout);
+  document.getElementById('payMonthSub').textContent = res.month.total_bookings + ' зап.';
+
+  document.getElementById('payComm').textContent = Math.round(res.commission * 100) + '%';
+
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const wrap = document.getElementById('daysTableWrap');
+  if (!res.month.days || res.month.days.length === 0) {
+    wrap.innerHTML = '<div class="empty">Пока нет данных за 30 дней</div>';
+    return;
+  }
+
+  let html = '<table class="days-table"><thead><tr><th>Дата</th><th>Зап.</th><th>Выручка</th><th>Штрафы</th><th>К выплате</th></tr></thead><tbody>';
+  res.month.days.forEach(function(d) {
+    const cls = d.date === todayIso ? ' class="today-row"' : '';
+    const dateLabel = new Date(d.date).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+    html += '<tr' + cls + '>' +
+      '<td>' + dateLabel + '</td>' +
+      '<td class="num">' + d.bookings + '</td>' +
+      '<td class="num">' + rub(d.revenue) + '</td>' +
+      '<td class="num" style="color:var(--busy);">' + (d.fines > 0 ? '−' + rub(d.fines) : '—') + '</td>' +
+      '<td class="num" style="color:var(--ok);font-weight:700;">' + rub(d.payout) + '</td>' +
+    '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+
+document.getElementById('requestPayoutBtn').addEventListener('click', async function() {
+  const amount = parseInt(document.getElementById('payoutAmount').value, 10);
+  const comment = document.getElementById('payoutComment').value.trim();
+  const msg = document.getElementById('payoutMsg');
+  if (!amount || amount <= 0) { msg.className = 'msg err'; msg.textContent = 'Укажите сумму'; return; }
+  const btn = document.getElementById('requestPayoutBtn');
+  btn.disabled = true; btn.textContent = 'Отправляем…';
+  try {
+    await api('/api/washer/request-payout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amount, comment: comment })
+    });
+    msg.className = 'msg ok';
+    msg.textContent = 'Запрос отправлен администратору';
+    document.getElementById('payoutAmount').value = '';
+    document.getElementById('payoutComment').value = '';
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Не удалось отправить: ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = 'Запросить выплату';
+});
+</script>
+</body>
+  </html>
