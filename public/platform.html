@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RapidLink — Панель владельца</title>
+<style>
+:root{ --ink:#0A1216; --panel:#111C21; --panel2:#0D171B; --foam:#EFF6F7; --dim:rgba(239,246,247,0.62); --dim2:rgba(239,246,247,0.42); --line:rgba(239,246,247,0.10); --accent:#46C2E0; --busy:#E5694F; --ok:#63C68C; --gold:#F0B429; }
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--ink);color:var(--foam);padding:20px;min-height:100vh;}
+.container{max-width:1000px;margin:0 auto;}
+h1{font-size:1.4rem;margin-bottom:6px;}
+h2{font-size:1.1rem;margin:22px 0 12px;color:var(--dim);}
+h3{font-size:0.95rem;margin:22px 0 10px;color:var(--dim);}
+.card{background:var(--panel);padding:20px;border-radius:14px;border:1px solid var(--line);margin-bottom:14px;}
+.btn{background:var(--accent);color:#06171C;padding:11px 18px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--foam);}
+.btn-small{padding:6px 12px;font-size:0.78rem;}
+.btn-danger{background:transparent;color:var(--busy);border:1px solid rgba(229,105,79,0.4);}
+.input{padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--foam);font-size:0.94rem;width:100%;font-family:inherit;}
+.input:focus{outline:none;border-color:var(--accent);}
+.field{margin-bottom:14px;}
+label{display:block;font-size:0.82rem;color:var(--dim);margin-bottom:5px;}
+.msg{font-size:0.86rem;margin-top:10px;min-height:18px;}
+.msg.err{color:var(--busy);}
+.msg.ok{color:var(--ok);}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.tab{padding:10px 18px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:0.88rem;color:var(--dim);font-weight:600;}
+.tab.active{background:var(--accent);color:#06171C;border-color:var(--accent);}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;}
+.stat .lbl{font-size:0.72rem;color:var(--dim2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
+.stat .val{font-size:1.6rem;font-weight:700;font-family:'SF Mono',Menlo,monospace;color:var(--foam);}
+.stat .val.accent{color:var(--accent);}
+.stat .val.ok{color:var(--ok);}
+.stat .val.gold{color:var(--gold);}
+.table{width:100%;border-collapse:collapse;font-size:0.85rem;}
+.table th,.table td{padding:11px 8px;border-bottom:1px solid var(--line);text-align:left;}
+.table th{color:var(--dim2);font-weight:600;font-size:0.74rem;text-transform:uppercase;}
+.table td.num{text-align:right;font-family:'SF Mono',Menlo,monospace;}
+.table tr:hover{background:rgba(70,194,224,0.04);}
+.tier-badge{display:inline-block;padding:3px 10px;border-radius:16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;}
+.tier-start{background:rgba(70,194,224,0.15);color:var(--accent);}
+.tier-business{background:rgba(240,180,41,0.15);color:var(--gold);}
+.tier-enterprise{background:rgba(99,198,140,0.15);color:var(--ok);}
+.status{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:700;}
+.status.active{background:rgba(99,198,140,0.15);color:var(--ok);}
+.status.issued{background:rgba(70,194,224,0.15);color:var(--accent);}
+.status.revoked{background:rgba(229,105,79,0.15);color:var(--busy);}
+.status.suspended{background:rgba(239,246,247,0.08);color:var(--dim2);}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+.logout{background:none;border:none;color:var(--dim2);font-size:0.85rem;cursor:pointer;text-decoration:underline;}
+.empty{text-align:center;padding:40px 20px;color:var(--dim2);}
+.mono{font-family:'SF Mono',Menlo,monospace;font-size:0.78rem;}
+.copy-btn{background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:3px 8px;border-radius:5px;font-size:0.7rem;cursor:pointer;margin-left:6px;}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- LOGIN -->
+  <div id="loginView" style="max-width:420px;margin:60px auto 0;">
+    <h1>RapidLink</h1>
+    <p style="color:var(--dim);margin:6px 0 24px;font-size:0.9rem;">Панель владельца платформы</p>
+    <div class="card">
+      <div class="field">
+        <label>Логин</label>
+        <input id="user" class="input" placeholder="owner" autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Пароль</label>
+        <input id="pass" type="password" class="input" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn" id="loginBtn" style="width:100%;">Войти</button>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="mainView" style="display:none;">
+    <div class="top">
+      <div>
+        <h1>Панель владельца</h1>
+        <div style="color:var(--dim2);font-size:0.82rem;margin-top:4px;">RapidLink · платформа записи</div>
+      </div>
+      <button class="logout" id="logoutBtn">Выйти</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="lbl">Студий</div>
+        <div class="val accent" id="statStudios">0</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Конечных клиентов</div>
+        <div class="val" id="statTenants">0</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Общий оборот</div>
+        <div class="val" id="statRevenue">0 ₽</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Ваша комиссия (3%)</div>
+        <div class="val ok" id="statCommission">0 ₽</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="studios">Студии</div>
+      <div class="tab" data-tab="licenses">Лицензии</div>
+    </div>
+
+    <div id="tab-studios">
+      <div id="studiosWrap">
+        <div class="empty">Загружаем…</div>
+      </div>
+    </div>
+
+    <div id="tab-licenses" style="display:none;">
+      <div id="licensesWrap">
+        <div class="empty">Загружаем…</div>
+      </div>
+    </div>
+
+    <div class="msg" id="mainMsg"></div>
+  </div>
+</div>
+
+<script>
+const API = '';
+let token = '';
+
+function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
+
+async function api(path, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(function() { return null; });
+  if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; err.data = data; throw err; }
+  return data;
+}
+
+/* LOGIN */
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const u = document.getElementById('user').value.trim();
+  const p = document.getElementById('pass').value;
+  const msg = document.getElementById('loginMsg');
+  if (!u || !p) { msg.className = 'msg err'; msg.textContent = 'Заполните логин и пароль'; return; }
+  msg.className = 'msg'; msg.textContent = 'Проверяем…';
+  try {
+    const res = await api('/api/platform/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: u, password: p })
+    });
+    token = res.token;
+    localStorage.setItem('platform_token', token);
+    showMain();
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Неверный логин или пароль';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  token = '';
+  localStorage.removeItem('platform_token');
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('loginView').style.display = '';
+  document.getElementById('user').value = '';
+  document.getElementById('pass').value = '';
+});
+
+/* TABS */
+document.querySelectorAll('.tab').forEach(function(tab) {
+  tab.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+    tab.classList.add('active');
+    document.getElementById('tab-studios').style.display = (tab.dataset.tab === 'studios') ? '' : 'none';
+    document.getElementById('tab-licenses').style.display = (tab.dataset.tab === 'licenses') ? '' : 'none';
+    if (tab.dataset.tab === 'licenses') loadLicenses();
+  });
+});
+
+async function showMain() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = '';
+  await loadSummary();
+  await loadStudios();
+}
+
+async function loadSummary() {
+  try {
+    const res = await api('/api/platform/summary');
+    document.getElementById('statStudios').textContent = res.studios_count;
+    document.getElementById('statTenants').textContent = res.tenants_count;
+    document.getElementById('statRevenue').textContent = rub(res.total_revenue);
+    document.getElementById('statCommission').textContent = rub(res.platform_commission);
+  } catch (e) {
+    if (e.status === 401) { document.getElementById('logoutBtn').click(); }
+  }
+}
+
+async function loadStudios() {
+  const wrap = document.getElementById('studiosWrap');
+  const msg = document.getElementById('mainMsg');
+  msg.textContent = '';
+  wrap.innerHTML = '<div class="empty">Загружаем…</div>';
+
+  let res;
+  try {
+    res = await api('/api/platform/studios');
+  } catch (e) {
+    if (e.status === 401) { document.getElementById('logoutBtn').click(); return; }
+    wrap.innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    return;
+  }
+
+  const list = res.studios || [];
+  if (list.length === 0) {
+    wrap.innerHTML = '<div class="empty">Пока нет студий.<br>Первая студия появится, когда кто-то активирует лицензию.</div>';
+    return;
+  }
+
+  let html = '<div class="card" style="padding:0;overflow-x:auto;">';
+  html += '<table class="table"><thead><tr>' +
+    '<th>Студия</th><th>Тариф</th><th>Клиентов</th><th>Оборот</th><th>Ваш 3%</th><th>Статус</th>' +
+  '</tr></thead><tbody>';
+
+  list.forEach(function(s) {
+    const tierClass = 'tier-' + (s.tier || 'start');
+    const tierName = { start: 'Start', business: 'Business', enterprise: 'Enterprise' }[s.tier] || s.tier;
+    html += '<tr>' +
+      '<td><b>' + (s.name || ('Студия #' + s.id)) + '</b><br><span class="mono" style="color:var(--dim2);">' + (s.license_key || '') + '</span></td>' +
+      '<td><span class="tier-badge ' + tierClass + '">' + tierName + '</span></td>' +
+      '<td class="num">' + s.tenants_count + '</td>' +
+      '<td class="num">' + rub(s.revenue) + '</td>' +
+      '<td class="num" style="color:var(--ok);font-weight:700;">' + rub(s.commission_amount) + '</td>' +
+      '<td><span class="status ' + s.status + '">' + s.status + '</span></td>' +
+    '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+async function loadLicenses() {
+  const wrap = document.getElementById('licensesWrap');
+  wrap.innerHTML = '<div class="empty">Загружаем…</div>';
+  wrap.innerHTML = '<div class="empty">Эндпоинт лицензий пока не реализован.<br>Функционал добавим в следующей итерации.</div>';
+}
+
+/* AUTO LOGIN */
+(function() {
+  const saved = localStorage.getItem('platform_token');
+  if (saved) {
+    token = saved;
+    showMain().catch(function() {
+      token = '';
+      localStorage.removeItem('platform_token');
+    });
+  }
+})();
+</script>
+</body>
+  </html>
