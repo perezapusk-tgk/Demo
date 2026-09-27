@@ -409,3 +409,60 @@ app.post('/api/studio/tenants', studioAuth, (req, res) => {
 });
 
 app.delete('/api/studio/tenants/:
+app.delete('/api/studio/tenants/:id', studioAuth, (req, res) => {
+  const rec = db.prepare('SELECT * FROM tenants WHERE id = ? AND studio_id = ?').get(req.params.id, req.studio.studio_id);
+  if (!rec) return res.status(404).json({ error: 'not found' });
+  db.prepare('UPDATE tenants SET status = ? WHERE id = ?').run('archived', req.params.id);
+  res.json({ ok: true });
+});
+
+/* ============ ВЛАДЕЛЕЦ ПЛАТФОРМЫ ============ */
+
+app.post('/api/platform/login', loginLimiter, (req, res) => {
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const { username, password } = req.body || {};
+  if (!username || !password) return res.status(400).json({ error: 'missing' });
+  const user = platformDb.prepare('SELECT * FROM platform_admins WHERE username = ?').get(username);
+  if (!user) return res.status(401).json({ error: 'invalid' });
+  if (!bcrypt.compareSync(password, user.password_hash)) return res.status(401).json({ error: 'invalid' });
+  const token = jwt.sign({ id: user.id, username: user.username, role: 'platform_owner' }, CONFIG.jwtSecret, { expiresIn: '12h' });
+  res.json({ token });
+});
+
+app.get('/api/platform/studios', (req, res) => {
+  const h = req.headers['authorization'];
+  if (!h) return res.status(401).json({ error: 'no auth' });
+  try {
+    const p = jwt.verify(h.split(' ')[1], CONFIG.jwtSecret);
+    if (p.role !== 'platform_owner') return res.status(403).json({ error: 'not owner' });
+  } catch (e) { return res.status(401).json({ error: 'invalid' }); }
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const studios = platformDb.prepare('SELECT * FROM studios ORDER BY created_at DESC').all();
+  const enriched = studios.map(s => {
+    const cntRow = db.prepare('SELECT COUNT(*) as c FROM tenants WHERE studio_id = ?').get(s.id);
+    const revRow = db.prepare('SELECT COALESCE(SUM(total),0) as sum FROM bookings WHERE tenant_id IN (SELECT id FROM tenants WHERE studio_id = ?) AND status IN (?, ?)').get(s.id, 'confirmed', 'completed');
+    const rev = revRow ? revRow.sum : 0;
+    return { ...s, tenants_count: cntRow ? cntRow.c : 0, revenue: rev, commission_amount: Math.round(rev * (s.commission_percent / 100)) };
+  });
+  res.json({ studios: enriched });
+});
+
+app.get('/api/platform/summary', (req, res) => {
+  const h = req.headers['authorization'];
+  if (!h) return res.status(401).json({ error: 'no auth' });
+  try {
+    const p = jwt.verify(h.split(' ')[1], CONFIG.jwtSecret);
+    if (p.role !== 'platform_owner') return res.status(403).json({ error: 'not owner' });
+  } catch (e) { return res.status(401).json({ error: 'invalid' }); }
+  if (!platformDb) return res.status(503).json({ error: 'platform_not_ready' });
+  const studiosCount = platformDb.prepare('SELECT COUNT(*) as c FROM studios').get().c;
+  const tenantsCount = db.prepare('SELECT COUNT(*) as c FROM tenants').get().c;
+  const revRow = db.prepare('SELECT COALESCE(SUM(total),0) as sum FROM bookings WHERE status IN (?, ?)').get('confirmed', 'completed');
+  const totalRevenue = revRow ? revRow.sum : 0;
+  res.json({ studios_count: studiosCount, tenants_count: tenantsCount, total_revenue: totalRevenue, platform_commission: Math.round(totalRevenue * 0.03) });
+});
+
+/* ============ ЗАПУСК ============ */
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log('Server listening on', PORT));
