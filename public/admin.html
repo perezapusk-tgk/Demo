@@ -89,7 +89,17 @@ select.input{min-width:140px;}
         <input id="fineReason" class="input" placeholder="Причина">
         <button class="btn" id="fineBtn">Добавить</button>
       </div>
-      <div class="msg" id="fineMsg"></div>
+            <div class="msg" id="fineMsg"></div>
+    </div>
+
+    <div class="card" id="panel-services" style="display:none">
+      <h3>Услуги и цены</h3>
+      <p style="color:var(--dim2); font-size:0.85rem; margin-bottom:12px;">Кликните на название, цену или длительность — отредактируйте, потом нажмите «Сохранить». Изменения сразу видны клиенту.</p>
+      <table class="table" id="servicesTb">
+        <thead><tr><th>ID</th><th>Класс</th><th>Название</th><th>Цена</th><th>Мин</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="msg" id="servicesMsg"></div>
     </div>
   </div>
 </div>
@@ -127,9 +137,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 document.querySelectorAll('.tab').forEach(tab => tab.addEventListener('click', () => {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   tab.classList.add('active');
-  ['bookings', 'report', 'washers'].forEach(name => document.getElementById('panel-' + name).style.display = (name === tab.dataset.tab) ? '' : 'none');
-}));
-
+    ['bookings', 'report', 'washers', 'services'].forEach(name => document.getElementById('panel-' + name).style.display = (name === tab.dataset.tab) ? '' : 'none');
+  if (tab.dataset.tab === 'services') loadServices();
+  });
 /* ---- bookings ---- */
 async function loadBookings() {
   const d = document.getElementById('date').value;
