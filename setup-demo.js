@@ -19,8 +19,15 @@ if (!fs.existsSync(configPath)) {
   if (demo.telegramBotToken) console.log('Telegram-бот подключён');
   else console.log('Telegram отключён (нет TELEGRAM_BOT_TOKEN)');
                                           }
-console.log('\n→ node migrate.js');
+console.log('Запускаю migrate.js (тенант-БД)...');
 execSync('node migrate.js', { stdio: 'inherit', cwd: root });
+
+if (!fs.existsSync(path.join(root, 'platform.db'))) {
+  console.log('Запускаю migrate-platform.js (платформа)...');
+  execSync('node migrate-platform.js', { stdio: 'inherit', cwd: root });
+} else {
+  console.log('platform.db уже существует — пропускаю migrate-platform');
+}
 
 console.log('\n→ наполняю демо-данными…');
 const Database = require('better-sqlite3');
