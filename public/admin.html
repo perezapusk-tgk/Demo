@@ -200,6 +200,117 @@ async function loadWashers() {
     const opt = document.createElement('option'); opt.value = w.id; opt.textContent = w.name; fineSelect.appendChild(opt);
   });
 }
+/* ---- services management ---- */
+async function loadServices() {
+  const tbody = document.querySelector('#servicesTb tbody');
+  const msg = document.getElementById('servicesMsg');
+  if (!tbody) return;
+  msg.textContent = '';
+  tbody.innerHTML = '<tr><td colspan="6" style="color:var(--dim2);">Загружаем…</td></tr>';
+
+  let res;
+  try {
+    res = await api('/api/admin/services');
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--busy);">Не удалось загрузить: ' + e.message + '</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = '';
+  (res.services || []).forEach(s => {
+    const tr = document.createElement('tr');
+
+    const tdId = document.createElement('td');
+    tdId.textContent = s.id;
+
+    const tdClass = document.createElement('td');
+    tdClass.textContent = s.class_name || '';
+
+    const tdName = document.createElement('td');
+    tdName.textContent = s.name;
+    tdName.contentEditable = 'true';
+    tdName.dataset.field = 'name';
+    tdName.dataset.id = s.id;
+    tdName.style.background = 'var(--panel2)';
+    tdName.style.outline = 'none';
+    tdName.style.borderRadius = '4px';
+    tdName.style.padding = '6px 8px';
+
+    const tdPrice = document.createElement('td');
+    tdPrice.textContent = s.price;
+    tdPrice.contentEditable = 'true';
+    tdPrice.dataset.field = 'price';
+    tdPrice.dataset.id = s.id;
+    tdPrice.style.background = 'var(--panel2)';
+    tdPrice.style.outline = 'none';
+    tdPrice.style.borderRadius = '4px';
+    tdPrice.style.padding = '6px 8px';
+
+    const tdDur = document.createElement('td');
+    tdDur.textContent = s.duration;
+    tdDur.contentEditable = 'true';
+    tdDur.dataset.field = 'duration';
+    tdDur.dataset.id = s.id;
+    tdDur.style.background = 'var(--panel2)';
+    tdDur.style.outline = 'none';
+    tdDur.style.borderRadius = '4px';
+    tdDur.style.padding = '6px 8px';
+
+    const tdBtn = document.createElement('td');
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'btn';
+    saveBtn.style.padding = '5px 10px';
+    saveBtn.style.fontSize = '0.75rem';
+    saveBtn.textContent = 'Сохранить';
+    saveBtn.dataset.saveId = s.id;
+    tdBtn.appendChild(saveBtn);
+
+    tr.appendChild(tdId);
+    tr.appendChild(tdClass);
+    tr.appendChild(tdName);
+    tr.appendChild(tdPrice);
+    tr.appendChild(tdDur);
+    tr.appendChild(tdBtn);
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('button[data-save-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.saveId;
+      const nameCell = tbody.querySelector('[data-field="name"][data-id="' + id + '"]');
+      const priceCell = tbody.querySelector('[data-field="price"][data-id="' + id + '"]');
+      const durCell = tbody.querySelector('[data-field="duration"][data-id="' + id + '"]');
+
+      const newName = nameCell.textContent.trim();
+      const newPrice = parseInt(priceCell.textContent.trim(), 10);
+      const newDur = parseInt(durCell.textContent.trim(), 10);
+
+      if (!newName) { msg.className = 'msg err'; msg.textContent = 'Название не может быть пустым'; return; }
+      if (isNaN(newPrice) || newPrice < 0) { msg.className = 'msg err'; msg.textContent = 'Цена должна быть числом ≥ 0'; return; }
+      if (isNaN(newDur) || newDur < 0) { msg.className = 'msg err'; msg.textContent = 'Длительность должна быть числом ≥ 0'; return; }
+
+      btn.disabled = true;
+      btn.textContent = '…';
+      try {
+        await api('/api/admin/services/' + id, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: newName, price: newPrice, duration: newDur })
+        });
+        msg.className = 'msg ok';
+        msg.textContent = 'Услуга #' + id + ' сохранена';
+        btn.textContent = '✓';
+        setTimeout(() => { btn.textContent = 'Сохранить'; btn.disabled = false; }, 1500);
+      } catch (e) {
+        msg.className = 'msg err';
+        msg.textContent = 'Ошибка сохранения #' + id + ': ' + e.message;
+        btn.textContent = 'Сохранить';
+        btn.disabled = false;
+      }
+    });
+  });
+}
+
 document.getElementById('fineBtn').addEventListener('click', async () => {
   const washer_id = parseInt(document.getElementById('fineWasher').value, 10);
   const amount = parseInt(document.getElementById('fineAmount').value, 10);
