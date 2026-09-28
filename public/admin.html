@@ -32,11 +32,11 @@
 .washer-card .sub { font-size: 0.82rem; color: var(--fg-dim2); margin-top: 4px; }
 .washer-card .comm {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   color: var(--ok);
   font-weight: 700;
 }
-.washer-card .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.washer-card .actions { display: flex; gap: 6px; flex-shrink: 0; }
 
 .editable {
   background: var(--bg-sunken);
@@ -50,44 +50,6 @@
   border-color: var(--accent);
   background: var(--bg-elev);
 }
-
-.book-row {
-  background: var(--bg-sunken);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  transition: all 0.2s ease;
-}
-.book-row:hover {
-  border-color: var(--accent-strong);
-}
-.book-row .top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-.book-row .code {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 700;
-  color: var(--accent);
-  font-size: 0.95rem;
-}
-.book-row .name-line { font-size: 0.92rem; color: var(--fg); }
-.book-row .sub { font-size: 0.82rem; color: var(--fg-dim2); margin-top: 2px; }
-.book-row .price { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--fg); }
-.book-row .bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-top: 12px;
-  flex-wrap: wrap;
-}
-.book-row .actions { display: flex; gap: 6px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -239,7 +201,7 @@ async function api(path, opts) {
   return data;
 }
 function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
-function todayIso() { return new Date().toISOString().slice(0, 10); }document.getElementById('loginBtn').addEventListener('click', async function() {
+function todayIso() { return new Date().toISOString().slice(0, 10); } document.getElementById('loginBtn').addEventListener('click', async function() {
   const u = document.getElementById('user').value;
   const p = document.getElementById('pass').value;
   const msg = document.getElementById('loginMsg');
@@ -251,6 +213,7 @@ function todayIso() { return new Date().toISOString().slice(0, 10); }document.ge
       body: JSON.stringify({ username: u, password: p })
     });
     token = res.token;
+    localStorage.setItem('admin_token', token);
     document.getElementById('loginCard').style.display = 'none';
     document.getElementById('main').style.display = 'block';
     document.getElementById('logoutBtn').style.display = '';
@@ -268,6 +231,7 @@ function todayIso() { return new Date().toISOString().slice(0, 10); }document.ge
 
 document.getElementById('logoutBtn').addEventListener('click', function() {
   token = '';
+  localStorage.removeItem('admin_token');
   document.getElementById('main').style.display = 'none';
   document.getElementById('loginCard').style.display = '';
   document.getElementById('logoutBtn').style.display = 'none';
@@ -318,54 +282,7 @@ async function loadBookings() {
   document.getElementById('statAvg').textContent = confirmed > 0 ? rub(Math.round(revenue / confirmed)) : '0 ₽';
 
   if (bookings.length === 0) {
-    list.innerHTML = '<div class="empty">' +
-      '<div class="empty-icon">📭</div>' +
-      '<div class="empty-title">На эту дату записей нет</div>' +
-      '<div>Выберите другую дату или подождите новых клиентов.</div>' +
-    '</div>';
-    return;
-  }
-
-  list.innerHTML = '';
-  bookings.forEach(function(b) {
-    let services = b.services_json;
-async function loadBookings() {
-  const d = document.getElementById('date').value;
-  const msg = document.getElementById('bookingsMsg');
-  const list = document.getElementById('bookingsList');
-  msg.textContent = '';
-  list.innerHTML = '<div class="empty"><div class="empty-title">Загружаем…</div></div>';
-
-  let res;
-  try {
-    res = await api('/api/admin/bookings?date=' + d);
-  } catch (e) {
-    msg.className = 'msg err';
-    msg.textContent = 'Не удалось загрузить записи.';
-    list.innerHTML = '';
-    return;
-  }
-
-  const bookings = res.bookings || [];
-  let revenue = 0, done = 0, confirmed = 0;
-  bookings.forEach(function(b) {
-    if (b.status === 'completed') done++;
-    if (b.status === 'confirmed' || b.status === 'completed') {
-      revenue += b.total;
-      confirmed++;
-    }
-  });
-  document.getElementById('statBookings').textContent = bookings.length;
-  document.getElementById('statDayRevenue').textContent = rub(revenue);
-  document.getElementById('statDone').textContent = done;
-  document.getElementById('statAvg').textContent = confirmed > 0 ? rub(Math.round(revenue / confirmed)) : '0 ₽';
-
-  if (bookings.length === 0) {
-    list.innerHTML = '<div class="empty">' +
-      '<div class="empty-icon">📭</div>' +
-      '<div class="empty-title">На эту дату записей нет</div>' +
-      '<div>Выберите другую дату или подождите новых клиентов.</div>' +
-    '</div>';
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">На эту дату записей нет</div></div>';
     return;
   }
 
@@ -377,9 +294,7 @@ async function loadBookings() {
   bookings.forEach(function(b) {
     let services = b.services_json;
     try { services = JSON.parse(b.services_json).join(', '); } catch (e) {}
-
     const statusClass = b.status === 'confirmed' ? 'badge-accent' : (b.status === 'completed' ? 'badge-ok' : 'badge-danger');
-
     html += '<tr>' +
       '<td><span class="mono" style="color:var(--accent);font-weight:700;">' + b.booking_code + '</span></td>' +
       '<td><b>' + b.name + '</b></td>' +
@@ -426,7 +341,7 @@ async function loadBookings() {
       } catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
     });
   });
-      }
+}
 
 document.getElementById('loadBtn').addEventListener('click', loadBookings);
 document.getElementById('exportBtn').addEventListener('click', function() {
@@ -480,11 +395,7 @@ document.getElementById('loadReportBtn').addEventListener('click', loadReport);a
   });
 
   if (window.__washers.length === 0) {
-    list.innerHTML = '<div class="empty">' +
-      '<div class="empty-icon">👤</div>' +
-      '<div class="empty-title">Пока нет мойщиков</div>' +
-      '<div>Нажмите «+ Добавить», чтобы добавить первого сотрудника.</div>' +
-    '</div>';
+    list.innerHTML = '<div class="empty"><div class="empty-icon">👤</div><div class="empty-title">Пока нет мойщиков</div><div>Нажмите «+ Добавить», чтобы добавить первого сотрудника.</div></div>';
     return;
   }
 
@@ -628,7 +539,6 @@ async function loadServices() {
   const saved = localStorage.getItem('admin_token');
   if (saved) {
     token = saved;
-    // пробуем — если токен истёк, покажется форма входа
     api('/api/admin/bookings?date=' + todayIso()).then(function() {
       document.getElementById('loginCard').style.display = 'none';
       document.getElementById('main').style.display = 'block';
