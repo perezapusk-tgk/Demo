@@ -4,65 +4,158 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RapidLink — Панель владельца</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
 <style>
-:root{ --ink:#0A1216; --panel:#111C21; --panel2:#0D171B; --foam:#EFF6F7; --dim:rgba(239,246,247,0.62); --dim2:rgba(239,246,247,0.42); --line:rgba(239,246,247,0.10); --accent:#46C2E0; --busy:#E5694F; --ok:#63C68C; --gold:#F0B429; }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,'Segoe UI',Arial,sans-serif;background:var(--ink);color:var(--foam);padding:20px;min-height:100vh;}
-.container{max-width:1000px;margin:0 auto;}
-h1{font-size:1.4rem;margin-bottom:6px;}
-h2{font-size:1.1rem;margin:22px 0 12px;color:var(--dim);}
-h3{font-size:0.95rem;margin:22px 0 10px;color:var(--dim);}
-.card{background:var(--panel);padding:20px;border-radius:14px;border:1px solid var(--line);margin-bottom:14px;}
-.btn{background:var(--accent);color:#06171C;padding:11px 18px;border-radius:9px;border:none;cursor:pointer;font-weight:700;font-size:0.9rem;}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
-.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--foam);}
-.btn-small{padding:6px 12px;font-size:0.78rem;}
-.btn-danger{background:transparent;color:var(--busy);border:1px solid rgba(229,105,79,0.4);}
-.input{padding:11px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--foam);font-size:0.94rem;width:100%;font-family:inherit;}
-.input:focus{outline:none;border-color:var(--accent);}
-.field{margin-bottom:14px;}
-label{display:block;font-size:0.82rem;color:var(--dim);margin-bottom:5px;}
-.msg{font-size:0.86rem;margin-top:10px;min-height:18px;}
-.msg.err{color:var(--busy);}
-.msg.ok{color:var(--ok);}
-.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
-.tab{padding:10px 18px;border-radius:9px;border:1px solid var(--line);background:var(--panel2);cursor:pointer;font-size:0.88rem;color:var(--dim);font-weight:600;}
-.tab.active{background:var(--accent);color:#06171C;border-color:var(--accent);}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
-.stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:16px;}
-.stat .lbl{font-size:0.72rem;color:var(--dim2);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;}
-.stat .val{font-size:1.6rem;font-weight:700;font-family:'SF Mono',Menlo,monospace;color:var(--foam);}
-.stat .val.accent{color:var(--accent);}
-.stat .val.ok{color:var(--ok);}
-.stat .val.gold{color:var(--gold);}
-.table{width:100%;border-collapse:collapse;font-size:0.85rem;}
-.table th,.table td{padding:11px 8px;border-bottom:1px solid var(--line);text-align:left;}
-.table th{color:var(--dim2);font-weight:600;font-size:0.74rem;text-transform:uppercase;}
-.table td.num{text-align:right;font-family:'SF Mono',Menlo,monospace;}
-.table tr:hover{background:rgba(70,194,224,0.04);}
-.tier-badge{display:inline-block;padding:3px 10px;border-radius:16px;font-size:0.72rem;font-weight:700;text-transform:uppercase;}
-.tier-start{background:rgba(70,194,224,0.15);color:var(--accent);}
-.tier-business{background:rgba(240,180,41,0.15);color:var(--gold);}
-.tier-enterprise{background:rgba(99,198,140,0.15);color:var(--ok);}
-.status{display:inline-block;padding:3px 10px;border-radius:12px;font-size:0.72rem;font-weight:700;}
-.status.active{background:rgba(99,198,140,0.15);color:var(--ok);}
-.status.issued{background:rgba(70,194,224,0.15);color:var(--accent);}
-.status.revoked{background:rgba(229,105,79,0.15);color:var(--busy);}
-.status.suspended{background:rgba(239,246,247,0.08);color:var(--dim2);}
-.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
-.logout{background:none;border:none;color:var(--dim2);font-size:0.85rem;cursor:pointer;text-decoration:underline;}
-.empty{text-align:center;padding:40px 20px;color:var(--dim2);}
-.mono{font-family:'SF Mono',Menlo,monospace;font-size:0.78rem;}
-.copy-btn{background:var(--panel2);border:1px solid var(--line);color:var(--dim);padding:3px 8px;border-radius:5px;font-size:0.7rem;cursor:pointer;margin-left:6px;}
+.license-key {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  color: var(--accent);
+  background: var(--bg-sunken);
+  padding: 3px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+.studio-card {
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  transition: all 0.2s ease;
+}
+.studio-card:hover {
+  border-color: var(--accent-strong);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.studio-card .info { flex: 1; min-width: 240px; }
+.studio-card .name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--fg);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.studio-card .stats-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 0.86rem;
+}
+.studio-card .stat-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.studio-card .stat-mini .lbl {
+  font-size: 0.7rem;
+  color: var(--fg-dim2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.studio-card .stat-mini .val {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  color: var(--fg);
+}
+.studio-card .stat-mini .val.ok { color: var(--ok); }
+.studio-card .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
+.license-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+.license-item {
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+.license-item:hover {
+  border-color: var(--accent-strong);
+  box-shadow: var(--shadow-md);
+}
+.license-item .left { flex: 1; min-width: 0; }
+.license-item .key-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.license-item .key-row .key {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.84rem;
+  color: var(--fg);
+  font-weight: 600;
+  word-break: break-all;
+}
+.license-item .meta {
+  font-size: 0.76rem;
+  color: var(--fg-dim2);
+  margin-top: 4px;
+}
+
+.copy-btn {
+  background: var(--bg-active);
+  border: 1px solid var(--line);
+  color: var(--fg-dim);
+  padding: 4px 9px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.copy-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.gen-result {
+  background: var(--ok-dim);
+  border: 1px solid var(--ok);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 14px;
+}
+.gen-result .key-line {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.84rem;
+  color: var(--fg);
+  padding: 4px 0;
+  word-break: break-all;
+}
 </style>
 </head>
 <body>
+
 <div class="container">
 
-  <!-- LOGIN -->
   <div id="loginView" style="max-width:420px;margin:60px auto 0;">
-    <h1>RapidLink</h1>
-    <p style="color:var(--dim);margin:6px 0 24px;font-size:0.9rem;">Панель владельца платформы</p>
+    <h1>Rapid<span style="color:var(--accent);">Link</span></h1>
+    <p style="color:var(--fg-dim);margin:6px 0 24px;font-size:0.9rem;">Панель владельца платформы</p>
     <div class="card">
       <div class="field">
         <label>Логин</label>
@@ -72,54 +165,67 @@ label{display:block;font-size:0.82rem;color:var(--dim);margin-bottom:5px;}
         <label>Пароль</label>
         <input id="pass" type="password" class="input" placeholder="••••••••" autocomplete="current-password">
       </div>
-      <button class="btn" id="loginBtn" style="width:100%;">Войти</button>
+      <button class="btn btn-block" id="loginBtn">Войти</button>
       <div class="msg" id="loginMsg"></div>
     </div>
   </div>
 
-  <!-- MAIN -->
   <div id="mainView" style="display:none;">
-    <div class="top">
+    <div class="page-head">
       <div>
         <h1>Панель владельца</h1>
-        <div style="color:var(--dim2);font-size:0.82rem;margin-top:4px;">RapidLink · платформа записи</div>
+        <div class="sub">RapidLink · платформа записи</div>
       </div>
-      <button class="logout" id="logoutBtn">Выйти</button>
+      <button class="btn btn-ghost btn-small" id="logoutBtn">Выйти</button>
     </div>
 
     <div class="stats">
       <div class="stat">
+        <div class="stat-icon">🏢</div>
         <div class="lbl">Студий</div>
         <div class="val accent" id="statStudios">0</div>
+        <div class="sub">активных</div>
       </div>
       <div class="stat">
+        <div class="stat-icon">👥</div>
         <div class="lbl">Конечных клиентов</div>
         <div class="val" id="statTenants">0</div>
+        <div class="sub">тенантов</div>
       </div>
       <div class="stat">
+        <div class="stat-icon">💰</div>
         <div class="lbl">Общий оборот</div>
         <div class="val" id="statRevenue">0 ₽</div>
+        <div class="sub">через платформу</div>
       </div>
-      <div class="stat">
+      <div class="stat stat-ok">
+        <div class="stat-icon">📈</div>
         <div class="lbl">Ваша комиссия (3%)</div>
         <div class="val ok" id="statCommission">0 ₽</div>
+        <div class="sub">за всё время</div>
       </div>
     </div>
 
     <div class="tabs">
-      <div class="tab active" data-tab="studios">Студии</div>
-      <div class="tab" data-tab="licenses">Лицензии</div>
+      <button class="tab active" data-tab="studios">Студии</button>
+      <button class="tab" data-tab="licenses">Лицензии</button>
     </div>
 
     <div id="tab-studios">
       <div id="studiosWrap">
-        <div class="empty">Загружаем…</div>
+        <div class="empty">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Загружаем…</div>
+        </div>
       </div>
     </div>
 
     <div id="tab-licenses" style="display:none;">
       <div id="licensesWrap">
-        <div class="empty">Загружаем…</div>
+        <div class="empty">
+          <div class="empty-icon">📭</div>
+          <div class="empty-title">Загружаем…</div>
+        </div>
       </div>
     </div>
 
@@ -130,6 +236,7 @@ label{display:block;font-size:0.82rem;color:var(--dim);margin-bottom:5px;}
 <script>
 const API = '';
 let token = '';
+let allLicenses = [];
 
 function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
 
@@ -141,10 +248,7 @@ async function api(path, opts) {
   const data = await res.json().catch(function() { return null; });
   if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; err.data = data; throw err; }
   return data;
-}
-
-/* LOGIN */
-document.getElementById('loginBtn').addEventListener('click', async function() {
+}document.getElementById('loginBtn').addEventListener('click', async function() {
   const u = document.getElementById('user').value.trim();
   const p = document.getElementById('pass').value;
   const msg = document.getElementById('loginMsg');
@@ -174,7 +278,6 @@ document.getElementById('logoutBtn').addEventListener('click', function() {
   document.getElementById('pass').value = '';
 });
 
-/* TABS */
 document.querySelectorAll('.tab').forEach(function(tab) {
   tab.addEventListener('click', function() {
     document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
@@ -208,62 +311,86 @@ async function loadStudios() {
   const wrap = document.getElementById('studiosWrap');
   const msg = document.getElementById('mainMsg');
   msg.textContent = '';
-  wrap.innerHTML = '<div class="empty">Загружаем…</div>';
+  wrap.innerHTML = '<div class="empty"><div class="empty-title">Загружаем…</div></div>';
 
   let res;
   try {
     res = await api('/api/platform/studios');
   } catch (e) {
     if (e.status === 401) { document.getElementById('logoutBtn').click(); return; }
-    wrap.innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    wrap.innerHTML = '<div class="empty"><div class="empty-title">Не удалось загрузить</div></div>';
     return;
   }
 
   const list = res.studios || [];
   if (list.length === 0) {
-    wrap.innerHTML = '<div class="empty">Пока нет студий.<br>Первая студия появится, когда кто-то активирует лицензию.</div>';
+    wrap.innerHTML = '<div class="empty">' +
+      '<div class="empty-icon">🏢</div>' +
+      '<div class="empty-title">Пока нет студий</div>' +
+      '<div>Первая студия появится, когда кто-то активирует лицензию во вкладке «Лицензии».</div>' +
+    '</div>';
     return;
   }
 
-  let html = '<div class="card" style="padding:0;overflow-x:auto;">';
-  html += '<table class="table"><thead><tr>' +
-    '<th>Студия</th><th>Тариф</th><th>Клиентов</th><th>Оборот</th><th>Ваш 3%</th><th>Статус</th>' +
-  '</tr></thead><tbody>';
+  wrap.innerHTML = '';
+  const tierNames = { start: 'Start', business: 'Business', enterprise: 'Enterprise' };
 
   list.forEach(function(s) {
-    const tierClass = 'tier-' + (s.tier || 'start');
-    const tierName = { start: 'Start', business: 'Business', enterprise: 'Enterprise' }[s.tier] || s.tier;
-    html += '<tr>' +
-      '<td><b>' + (s.name || ('Студия #' + s.id)) + '</b><br><span class="mono" style="color:var(--dim2);">' + (s.license_key || '') + '</span></td>' +
-      '<td><span class="tier-badge ' + tierClass + '">' + tierName + '</span></td>' +
-      '<td class="num">' + s.tenants_count + '</td>' +
-      '<td class="num">' + rub(s.revenue) + '</td>' +
-      '<td class="num" style="color:var(--ok);font-weight:700;">' + rub(s.commission_amount) + '</td>' +
-      '<td><span class="status ' + s.status + '">' + s.status + '</span></td>' +
-    '</tr>';
+    const div = document.createElement('div');
+    div.className = 'studio-card';
+    const tierClass = 'badge-' + (s.tier || 'start');
+    const tierName = tierNames[s.tier] || s.tier;
+
+    div.innerHTML =
+      '<div class="info">' +
+        '<div class="name">' +
+          (s.name || ('Студия #' + s.id)) +
+          '<span class="badge ' + tierClass + '">' + tierName + '</span>' +
+        '</div>' +
+        '<div class="license-key">' + (s.license_key || '') + '</div>' +
+        '<div class="stats-row">' +
+          '<div class="stat-mini"><span class="lbl">Клиентов</span><span class="val">' + s.tenants_count + '</span></div>' +
+          '<div class="stat-mini"><span class="lbl">Оборот</span><span class="val">' + rub(s.revenue) + '</span></div>' +
+          '<div class="stat-mini"><span class="lbl">Ваш 3%</span><span class="val ok">' + rub(s.commission_amount) + '</span></div>' +
+          '<div class="stat-mini"><span class="lbl">Статус</span><span class="val"><span class="badge badge-' + (s.status === 'active' ? 'ok' : 'danger') + '">' + s.status + '</span></span></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="btn btn-small btn-ghost" data-copy-license="' + (s.license_key || '') + '">Copy ключ</button>' +
+      '</div>';
+
+    wrap.appendChild(div);
   });
 
-  html += '</tbody></table></div>';
-  wrap.innerHTML = html;
+  wrap.querySelectorAll('button[data-copy-license]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const key = btn.dataset.copyLicense;
+      if (!key) return;
+      navigator.clipboard.writeText(key).then(function() {
+        btn.textContent = '✓';
+        setTimeout(function() { btn.textContent = 'Copy ключ'; }, 1200);
+      }).catch(function() { alert(key); });
+    });
+  });
 }
 
 async function loadLicenses() {
   const wrap = document.getElementById('licensesWrap');
-  wrap.innerHTML = '<div class="empty">Загружаем…</div>';
+  wrap.innerHTML = '<div class="empty"><div class="empty-title">Загружаем…</div></div>';
 
   let res;
   try {
     res = await api('/api/platform/licenses');
   } catch (e) {
-    wrap.innerHTML = '<div class="empty">Не удалось загрузить</div>';
+    wrap.innerHTML = '<div class="empty"><div class="empty-title">Не удалось загрузить</div></div>';
     return;
   }
 
-  const list = res.licenses || [];
+  allLicenses = res.licenses || [];
 
   let html = '<div class="card">';
   html += '<h3 style="margin-top:0;">Генератор лицензий</h3>';
-  html += '<p style="color:var(--dim2);font-size:0.82rem;margin-bottom:12px;">Создайте пакет ключей для продажи студиям.</p>';
+  html += '<p style="color:var(--fg-dim2);font-size:0.82rem;margin-bottom:14px;">Создайте пакет ключей для продажи студиям.</p>';
   html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">';
   html += '<select id="genTier" class="input" style="flex:1;min-width:150px;">';
   html += '<option value="start">Start — 200 000 ₽</option>';
@@ -277,37 +404,37 @@ async function loadLicenses() {
   html += '<div id="genResult"></div>';
   html += '</div>';
 
-  html += '<div class="card" style="padding:0;overflow-x:auto;">';
+  html += '<div class="card card-pad-0"><div class="table-wrap">';
   html += '<table class="table"><thead><tr>';
   html += '<th>Ключ</th><th>Тариф</th><th>Статус</th><th>Студия</th><th>Лимит</th><th></th>';
   html += '</tr></thead><tbody>';
 
-  if (list.length === 0) {
+  if (allLicenses.length === 0) {
     html += '<tr><td colspan="6" class="empty">Лицензий пока нет. Сгенерируйте первый пакет выше.</td></tr>';
   }
 
-  list.forEach(function(l) {
+  allLicenses.forEach(function(l) {
     const tierName = { start: 'Start', business: 'Business', enterprise: 'Enterprise' }[l.tier] || l.tier;
     const limit = l.max_tenants > 0 ? l.max_tenants + ' кл.' : '∞';
     const studioName = l.studio_name || '—';
     html += '<tr>' +
       '<td><span class="mono">' + l.key + '</span>' +
-        '<button class="copy-btn" data-copy="' + l.key + '">Copy</button></td>' +
-      '<td><span class="tier-badge tier-' + l.tier + '">' + tierName + '</span></td>' +
-      '<td><span class="status ' + l.status + '">' + l.status + '</span></td>' +
+        '<button class="copy-btn" data-copy="' + l.key + '" style="margin-left:6px;">Copy</button></td>' +
+      '<td><span class="badge badge-' + l.tier + '">' + tierName + '</span></td>' +
+      '<td><span class="badge badge-' + (l.status === 'active' ? 'ok' : (l.status === 'revoked' ? 'danger' : 'accent')) + '">' + l.status + '</span></td>' +
       '<td>' + studioName + '</td>' +
       '<td>' + limit + '</td>' +
       '<td>' +
         (l.status === 'active'
-          ? '<button class="btn-small btn-danger" data-revoke="' + l.id + '">Отозвать</button>'
+          ? '<button class="btn btn-small btn-danger" data-revoke="' + l.id + '">Отозвать</button>'
           : (l.status === 'revoked'
-            ? '<button class="btn-small btn-ghost" data-restore="' + l.id + '">Восстановить</button>'
-            : '<span style="color:var(--dim2);font-size:0.75rem;">Не активирована</span>')) +
+            ? '<button class="btn btn-small btn-ghost" data-restore="' + l.id + '">Восстановить</button>'
+            : '<span style="color:var(--fg-dim2);font-size:0.75rem;">Не активирована</span>')) +
       '</td>' +
     '</tr>';
   });
 
-  html += '</tbody></table></div>';
+  html += '</tbody></table></div></div>';
   wrap.innerHTML = html;
 
   document.getElementById('genBtn').addEventListener('click', async function() {
@@ -324,9 +451,9 @@ async function loadLicenses() {
       });
       msg.className = 'msg ok';
       msg.textContent = '✓ Создано ' + r.count + ' лицензий';
-      resultWrap.innerHTML = '<div style="background:var(--panel2);padding:14px;border-radius:10px;margin-top:12px;font-family:monospace;font-size:0.82rem;">' +
-        r.keys.map(function(k) { return '<div style="padding:4px 0;">' + k + '</div>'; }).join('') +
-        '</div><div style="color:var(--dim2);font-size:0.78rem;margin-top:8px;">Скопируйте ключи и передайте покупателю.</div>';
+      resultWrap.innerHTML = '<div class="gen-result">' +
+        r.keys.map(function(k) { return '<div class="key-line">' + k + '</div>'; }).join('') +
+        '</div><div style="color:var(--fg-dim2);font-size:0.78rem;margin-top:8px;">Скопируйте ключи и передайте покупателю.</div>';
       loadLicenses();
       loadSummary();
     } catch (e) {
@@ -372,10 +499,7 @@ async function loadLicenses() {
       } catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
     });
   });
-      }
-
-/* AUTO LOGIN */
-(function() {
+  }(function() {
   const saved = localStorage.getItem('platform_token');
   if (saved) {
     token = saved;
@@ -386,5 +510,6 @@ async function loadLicenses() {
   }
 })();
 </script>
+<script src="/theme.js"></script>
 </body>
-  </html>
+</html>
