@@ -4,25 +4,54 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RapidLink — Панель студии</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/styles.css">
 <style>
-.tenant { background: var(--bg-sunken); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.tenant {
+  background: var(--bg-sunken);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+  transition: all 0.2s ease;
+}
+.tenant:hover { border-color: var(--accent-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .tenant .info { flex: 1; min-width: 220px; }
 .tenant .name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--fg); }
 .tenant .sub { font-size: 0.82rem; color: var(--fg-dim); margin-bottom: 4px; }
 .tenant .link { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--accent); word-break: break-all; margin-top: 6px; }
 .tenant .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+
 .tier-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .tier-start { background: var(--accent-dim); color: var(--accent); }
 .tier-business { background: var(--warn-dim); color: var(--warn); }
 .tier-enterprise { background: var(--ok-dim); color: var(--ok); }
+
 .result-box { background: var(--ok-dim); border: 1px solid var(--ok); border-radius: 10px; padding: 16px; margin: 14px 0; }
 .result-box .label { font-size: 0.75rem; color: var(--fg-dim2); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.04em; }
 .result-box .value { font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; color: var(--fg); margin-bottom: 12px; word-break: break-all; }
 .subdomain-preview { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--fg-dim2); margin-top: 6px; }
+
+.demo-link {
+  background: var(--bg-elev);
+  border: 1px solid var(--line);
+  padding: 14px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+.demo-link:hover { border-color: var(--accent); transform: translateX(3px); box-shadow: var(--shadow-md); }
+.demo-link .ico { font-size: 1.6rem; }
+.demo-link .lbl { display: block; font-size: 0.72rem; color: var(--fg-dim2); text-transform: uppercase; letter-spacing: 0.04em; }
+.demo-link .val { font-size: 0.92rem; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -46,6 +75,35 @@
   </div>
 
   <div id="mainView" style="display:none;">
+
+    <div id="welcomeCard" class="card" style="display:none;margin-bottom:18px;background:linear-gradient(135deg,var(--accent-dim),var(--ok-dim));border-color:var(--accent-strong);">
+      <h2 style="margin-top:0;color:var(--fg);">👋 Добро пожаловать в RapidLink!</h2>
+      <p style="color:var(--fg-dim);font-size:0.94rem;margin-bottom:16px;">Мы создали для вас демо-клиента — посмотрите, как работает движок. Откройте любой из этих разделов:</p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
+        <a href="#" id="welcomeClientLink" target="_blank" class="demo-link">
+          <span class="ico">🌐</span>
+          <span>
+            <span class="lbl">Клиент</span>
+            <span class="val">Запись на мойку</span>
+          </span>
+        </a>
+        <a href="#" id="welcomeAdminLink" target="_blank" class="demo-link">
+          <span class="ico">🔐</span>
+          <span>
+            <span class="lbl">Админка</span>
+            <span class="val">Управление</span>
+          </span>
+        </a>
+      </div>
+      <div style="font-size:0.82rem;color:var(--fg-dim2);margin-bottom:12px;">
+        <b style="color:var(--fg);">Демо-логин админки:</b>
+        <span id="welcomeDemoLogin" class="mono" style="color:var(--accent);">demo_1</span> /
+        <span id="welcomeDemoPass" class="mono" style="color:var(--accent);">demo123</span>
+      </div>
+      <p style="color:var(--fg-dim2);font-size:0.82rem;margin-bottom:14px;">Когда будете готовы — нажмите «+ Добавить клиента» и создайте своего первого реального клиента.</p>
+      <button class="btn btn-small btn-ghost" id="welcomeCloseBtn">Понятно, скрыть</button>
+    </div>
+
     <div class="page-head">
       <div>
         <h1 id="studioName">—</h1>
@@ -175,6 +233,9 @@ async function api(path, opts) {
     studio = res.studio;
     localStorage.setItem('studio_token', token);
     localStorage.setItem('studio_data', JSON.stringify(studio));
+    if (res.is_new) localStorage.removeItem('studio_welcome_' + studio.id);
+    if (res.demo_login) localStorage.setItem('studio_demo_login_' + studio.id, res.demo_login);
+    if (res.demo_password) localStorage.setItem('studio_demo_pass_' + studio.id, res.demo_password);
     showMain();
   } catch (e) {
     if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ. Проверьте и попробуйте снова.';
@@ -205,6 +266,11 @@ async function showMain() {
   document.getElementById('studioLimits').textContent = 'до ' + maxT + ' клиентов · ' + studio.max_verticals + ' вертикалей';
   await loadVerticals();
   await loadTenants();
+
+  document.getElementById('welcomeCloseBtn').addEventListener('click', function() {
+    document.getElementById('welcomeCard').style.display = 'none';
+    localStorage.setItem('studio_welcome_' + studio.id, '1');
+  });
 }
 
 async function loadVerticals() {
@@ -235,8 +301,23 @@ async function loadTenants() {
     return;
   }
 
-  const list = (res.tenants || []).filter(function(t) { return t.status === 'active'; });
+  window.__tenants = res.tenants || [];
+  const list = window.__tenants.filter(function(t) { return t.status === 'active'; });
   document.getElementById('statTenants').textContent = list.length;
+
+  // Приветствие — если есть демо-тенант и студия его ещё не видела
+  var hasSeenWelcome = localStorage.getItem('studio_welcome_' + studio.id);
+  var demoTenant = window.__tenants.find(function(t) { return t.subdomain.indexOf('demo-') === 0; });
+  if (!hasSeenWelcome && demoTenant) {
+    var baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
+    document.getElementById('welcomeClientLink').href = 'https://' + demoTenant.subdomain + '.' + baseDomain + '/';
+    document.getElementById('welcomeAdminLink').href = 'https://' + demoTenant.subdomain + '.' + baseDomain + '/admin.html';
+    document.getElementById('welcomeCard').style.display = '';
+    var demoLogin = localStorage.getItem('studio_demo_login_' + studio.id) || 'demo_' + studio.id;
+    var demoPass = localStorage.getItem('studio_demo_pass_' + studio.id) || 'demo' + studio.id;
+    document.getElementById('welcomeDemoLogin').textContent = demoLogin;
+    document.getElementById('welcomeDemoPass').textContent = demoPass;
+  }
 
   if (list.length === 0) {
     wrap.innerHTML = '<div class="empty">' +
@@ -255,13 +336,14 @@ async function loadTenants() {
   list.forEach(function(t) {
     const div = document.createElement('div');
     div.className = 'tenant';
+    const isDemo = t.subdomain.indexOf('demo-') === 0;
 
     const siteUrl = 'https://' + t.subdomain + '.' + baseDomain + '/';
     const adminUrl = 'https://' + t.subdomain + '.' + baseDomain + '/admin.html';
 
     div.innerHTML =
       '<div class="info">' +
-        '<div class="name">' + t.business_name + ' <span class="badge badge-accent">' + t.vertical_code + '</span></div>' +
+        '<div class="name">' + t.business_name + ' <span class="badge badge-accent">' + t.vertical_code + '</span>' + (isDemo ? ' <span class="badge badge-warn">ДЕМО</span>' : '') + '</div>' +
         '<div class="sub">' + (t.contact_name ? t.contact_name + ' · ' : '') + (t.contact_phone || '') + '</div>' +
         '<div class="link">' + siteUrl + '</div>' +
         '<div class="link" style="color:var(--fg-dim2);">' + adminUrl + '</div>' +
@@ -300,7 +382,7 @@ async function loadTenants() {
 
   document.getElementById('statRevenue').textContent = '0 ₽';
   document.getElementById('statCommission').textContent = '0 ₽';
-      }document.getElementById('addTenantBtn').addEventListener('click', function() {
+  }document.getElementById('addTenantBtn').addEventListener('click', function() {
   document.getElementById('addModal').classList.add('show');
   document.getElementById('formBlock').style.display = '';
   document.getElementById('createdResult').style.display = 'none';
