@@ -1,761 +1,230 @@
-/* ============================================================
-   RapidLink Design System v2.0
-   Тёмная + светлая темы, премиум-эффекты, анимации
-   ============================================================ */
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RapidLink — Панель студии</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/styles.css">
+<script src="/theme.js"></script>
+<style>
+.tenant { background: var(--bg-sunken); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.tenant .info { flex: 1; min-width: 220px; }
+.tenant .name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--fg); }
+.tenant .sub { font-size: 0.82rem; color: var(--fg-dim); margin-bottom: 4px; }
+.tenant .link { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--accent); word-break: break-all; margin-top: 6px; }
+.tenant .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+.tier-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+.tier-start { background: var(--accent-dim); color: var(--accent); }
+.tier-business { background: var(--warn-dim); color: var(--warn); }
+.tier-enterprise { background: var(--ok-dim); color: var(--ok); }
+.result-box { background: var(--ok-dim); border: 1px solid var(--ok); border-radius: 10px; padding: 16px; margin: 14px 0; }
+.result-box .label { font-size: 0.75rem; color: var(--fg-dim2); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.04em; }
+.result-box .value { font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; color: var(--fg); margin-bottom: 12px; word-break: break-all; }
+.subdomain-preview { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--fg-dim2); margin-top: 6px; }
+</style>
+</head>
+<body>
 
-/* ---------- ПЕРЕМЕННЫЕ ТЁМНОЙ ТЕМЫ (по умолчанию) ---------- */
-:root,
-[data-theme="dark"] {
-  --bg: #0A1216;
-  --bg-elev: #111C21;
-  --bg-sunken: #0D171B;
-  --bg-hover: #16222650;
-  --bg-active: #162226;
-  --bg-gradient-1: rgba(70, 194, 224, 0.08);
-  --bg-gradient-2: rgba(99, 198, 140, 0.06);
+<div class="container">
 
-  --fg: #EFF6F7;
-  --fg-dim: rgba(239, 246, 247, 0.62);
-  --fg-dim2: rgba(239, 246, 247, 0.42);
-  --fg-dim3: rgba(239, 246, 247, 0.28);
+  <div id="loginView" style="max-width:480px;margin:60px auto 0;">
+    <h1>Rapid<span style="color:var(--accent);">Link</span></h1>
+    <p style="color:var(--fg-dim);margin:6px 0 24px;font-size:0.9rem;">Панель управления студии</p>
+    <div class="card">
+      <div class="field">
+        <label>Лицензионный ключ</label>
+        <input id="licenseKey" class="input" placeholder="RPLK-XXXX-XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters">
+      </div>
+      <button class="btn btn-block" id="loginBtn">Войти</button>
+      <div class="msg" id="loginMsg"></div>
+    </div>
+    <p style="text-align:center;margin-top:16px;color:var(--fg-dim2);font-size:0.78rem;">
+      Ключ выдаётся после покупки тарифа.
+    </p>
+  </div>
 
-  --line: rgba(239, 246, 247, 0.10);
-  --line-strong: rgba(239, 246, 247, 0.18);
+  <div id="mainView" style="display:none;">
+    <div class="page-head">
+      <div>
+        <h1 id="studioName">—</h1>
+        <div class="sub" style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+          <span id="studioTier" class="tier-badge tier-start">—</span>
+          <span id="studioLimits">—</span>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-small" id="logoutBtn">Выйти</button>
+    </div>
 
-  --accent: #46C2E0;
-  --accent-hover: #5CCEE8;
-  --accent-dim: rgba(70, 194, 224, 0.12);
-  --accent-strong: rgba(70, 194, 224, 0.25);
-  --accent-fg: #06171C;
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-icon">👥</div>
+        <div class="lbl">Клиентов</div>
+        <div class="val accent" id="statTenants">0</div>
+        <div class="sub">активных</div>
+      </div>
+      <div class="stat">
+        <div class="stat-icon">💰</div>
+        <div class="lbl">Общий оборот</div>
+        <div class="val" id="statRevenue">0 ₽</div>
+        <div class="sub">через систему</div>
+      </div>
+      <div class="stat stat-ok">
+        <div class="stat-icon">📊</div>
+        <div class="lbl">Ваша комиссия (3%)</div>
+        <div class="val ok" id="statCommission">0 ₽</div>
+        <div class="sub">к оплате платформе</div>
+      </div>
+    </div>
 
-  --ok: #63C68C;
-  --ok-dim: rgba(99, 198, 140, 0.15);
-  --ok-strong: rgba(99, 198, 140, 0.3);
-  --warn: #F0B429;
-  --warn-dim: rgba(240, 180, 41, 0.15);
-  --danger: #E5694F;
-  --danger-dim: rgba(229, 105, 79, 0.15);
+    <div class="flex-between mb-2" style="flex-wrap:wrap;gap:10px;">
+      <h3 style="margin:0;">Мои клиенты</h3>
+      <button class="btn" id="addTenantBtn">+ Добавить клиента</button>
+    </div>
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 0 3px rgba(70, 194, 224, 0.15);
-  --shadow-accent: 0 8px 32px rgba(70, 194, 224, 0.25);
-}
+    <div id="tenantsWrap">
+      <div class="empty">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">Загружаем…</div>
+      </div>
+    </div>
 
-[data-theme="light"] {
-  --bg: #F7F9FA;
-  --bg-elev: #FFFFFF;
-  --bg-sunken: #EFF3F5;
-  --bg-hover: #F0F4F6;
-  --bg-active: #E5EDF0;
-  --bg-gradient-1: rgba(16, 153, 189, 0.08);
-  --bg-gradient-2: rgba(47, 158, 92, 0.06);
+    <div class="msg" id="mainMsg"></div>
+  </div>
+</div>
 
-  --fg: #0A1216;
-  --fg-dim: rgba(10, 18, 22, 0.72);
-  --fg-dim2: rgba(10, 18, 22, 0.55);
-  --fg-dim3: rgba(10, 18, 22, 0.38);
+<div class="modal-bg" id="addModal">
+  <div class="modal">
+    <h2 style="margin-bottom:18px;">Новый клиент</h2>
 
-  --line: rgba(10, 18, 22, 0.10);
-  --line-strong: rgba(10, 18, 22, 0.18);
+    <div id="formBlock">
+      <div class="field">
+        <label>Поддомен</label>
+        <input id="newSubdomain" class="input" placeholder="mywash" autocapitalize="off" autocomplete="off">
+        <div class="subdomain-preview" id="subdomainPreview">→ mywash.rapidlink.ru</div>
+      </div>
+      <div class="field">
+        <label>Вертикаль</label>
+        <select id="newVertical" class="input"></select>
+      </div>
+      <div class="field">
+        <label>Название бизнеса</label>
+        <input id="newBusinessName" class="input" placeholder="Мойка на Ленина">
+      </div>
+      <div class="row-2">
+        <div class="field">
+          <label>Контактное лицо</label>
+          <input id="newContactName" class="input" placeholder="Иван Иванов">
+        </div>
+        <div class="field">
+          <label>Телефон</label>
+          <input id="newContactPhone" class="input" placeholder="+7 ..." type="tel">
+        </div>
+      </div>
+      <div class="msg" id="addMsg"></div>
+      <div class="row row-narrow mt-2">
+        <button class="btn btn-ghost" id="cancelAddBtn">Отмена</button>
+        <button class="btn" id="createTenantBtn">Создать клиента</button>
+      </div>
+    </div>
 
-  --accent: #1099BD;
-  --accent-hover: #0E85A5;
-  --accent-dim: rgba(16, 153, 189, 0.10);
-  --accent-strong: rgba(16, 153, 189, 0.25);
-  --accent-fg: #FFFFFF;
+    <div id="createdResult" style="display:none;">
+      <div class="result-box">
+        <div class="label">Сайт клиента</div>
+        <div class="value" id="resultUrl">—</div>
+        <div class="label">Логин админки</div>
+        <div class="value" id="resultLogin">—</div>
+        <div class="label">Пароль админки</div>
+        <div class="value" id="resultPassword">—</div>
+        <div style="font-size:0.78rem;color:var(--fg-dim2);">Сохраните логин и пароль — показываются один раз.</div>
+      </div>
+      <button class="btn btn-block" id="closeResultBtn">Готово</button>
+    </div>
+  </div>
+</div>
 
-  --ok: #2F9E5C;
-  --ok-dim: rgba(47, 158, 92, 0.12);
-  --ok-strong: rgba(47, 158, 92, 0.3);
-  --warn: #B8860B;
-  --warn-dim: rgba(184, 134, 11, 0.12);
-  --danger: #C7442B;
-  --danger-dim: rgba(199, 68, 43, 0.12);
+<script>
+const API = '';
+let token = '';
+let studio = null;
+let verticals = [];
 
-  --shadow-sm: 0 1px 2px rgba(10, 18, 22, 0.06);
-  --shadow-md: 0 4px 12px rgba(10, 18, 22, 0.08);
-  --shadow-lg: 0 12px 40px rgba(10, 18, 22, 0.12);
-  --shadow-glow: 0 0 0 3px rgba(16, 153, 189, 0.15);
-  --shadow-accent: 0 8px 32px rgba(16, 153, 189, 0.2);
-}
+function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
 
-/* ---------- БАЗОВЫЕ СТИЛИ ---------- */
-*, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
-  background: var(--bg);
-  background-image:
-    radial-gradient(ellipse at top left, var(--bg-gradient-1), transparent 50%),
-    radial-gradient(ellipse at bottom right, var(--bg-gradient-2), transparent 50%);
-  background-attachment: fixed;
-  color: var(--fg);
-  line-height: 1.55;
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.25s ease, color 0.25s ease;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  margin: 0 0 12px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-h1 { font-size: 1.7rem; }
-h2 { font-size: 1.3rem; }
-h3 { font-size: 1.05rem; color: var(--fg-dim); font-weight: 600; }
-
-/* Градиентный текст для заголовков с классом */
-h1.gradient,
-.gradient-text {
-  background: linear-gradient(135deg, var(--accent), var(--ok));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-p { margin: 0 0 12px; color: var(--fg-dim); }
-a { color: var(--accent); text-decoration: none; }
-a:hover { color: var(--accent-hover); }
-
-.mono, code, pre {
-  font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
-  font-variant-numeric: tabular-nums;
-}
-
-/* ---------- КОНТЕЙНЕР ---------- */
-.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-.container-narrow { max-width: 640px; margin: 0 auto; padding: 24px; }
-
-/* ---------- АНИМАЦИИ ПОЯВЛЕНИЯ ---------- */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
-.animate-in {
-  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-.animate-in.delay-1 { animation-delay: 0.05s; }
-.animate-in.delay-2 { animation-delay: 0.1s; }
-.animate-in.delay-3 { animation-delay: 0.15s; }
-.animate-in.delay-4 { animation-delay: 0.2s; }
-.animate-in.delay-5 { animation-delay: 0.25s; }
-
-/* ---------- КНОПКИ ---------- */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 11px 18px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 0.9rem;
-  font-family: inherit;
-  border: 1px solid transparent;
-  cursor: pointer;
-  text-decoration: none;
-  color: var(--accent-fg);
-  background: var(--accent);
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
-  user-select: none;
-  position: relative;
-  overflow: hidden;
-}
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
-  transform: translateX(-100%);
-  transition: transform 0.6s ease;
-}
-.btn:hover:not(:disabled)::before { transform: translateX(100%); }
-.btn:hover:not(:disabled) {
-  background: var(--accent-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-accent);
-}
-.btn:active:not(:disabled) { transform: translateY(0); }
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-ghost {
-  background: transparent;
-  color: var(--fg);
-  border-color: var(--line);
-}
-.btn-ghost::before { display: none; }
-.btn-ghost:hover:not(:disabled) {
-  background: var(--bg-hover);
-  border-color: var(--line-strong);
-  transform: none;
-  box-shadow: none;
+async function api(path, opts) {
+  opts = opts || {};
+  opts.headers = opts.headers || {};
+  if (token) opts.headers['Authorization'] = 'Bearer ' + token;
+  const res = await fetch(API + path, opts);
+  const data = await res.json().catch(function() { return null; });
+  if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; err.data = data; throw err; }
+  return data;
 }
 
-.btn-danger {
-  background: transparent;
-  color: var(--danger);
-  border-color: var(--danger-dim);
-}
-.btn-danger::before { display: none; }
-.btn-danger:hover:not(:disabled) {
-  background: var(--danger-dim);
-  border-color: var(--danger);
-  transform: none;
-  box-shadow: none;
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+  const msg = document.getElementById('loginMsg');
+  if (!key) { msg.className = 'msg err'; msg.textContent = 'Введите лицензионный ключ'; return; }
+  msg.className = 'msg'; msg.textContent = 'Проверяем…';
+  try {
+    const res = await api('/api/studio/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    });
+    token = res.token;
+    studio = res.studio;
+    localStorage.setItem('studio_token', token);
+    localStorage.setItem('studio_data', JSON.stringify(studio));
+    showMain();
+  } catch (e) {
+    if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ. Проверьте и попробуйте снова.';
+    else if (e.data && e.data.error === 'revoked') msg.textContent = 'Ключ отозван. Обратитесь к платформе.';
+    else msg.textContent = 'Ошибка входа. Попробуйте ещё раз.';
+    msg.className = 'msg err';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  token = ''; studio = null;
+  localStorage.removeItem('studio_token');
+  localStorage.removeItem('studio_data');
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('loginView').style.display = '';
+  document.getElementById('licenseKey').value = '';
+});
+
+async function showMain() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = '';
+  document.getElementById('studioName').textContent = studio.name || ('Студия #' + studio.id);
+  const tierNames = { start: 'Start', business: 'Business', enterprise: 'Enterprise' };
+  const tierEl = document.getElementById('studioTier');
+  tierEl.textContent = tierNames[studio.tier] || studio.tier;
+  tierEl.className = 'tier-badge tier-' + studio.tier;
+  const maxT = studio.max_tenants > 0 ? studio.max_tenants : '∞';
+  document.getElementById('studioLimits').textContent = 'до ' + maxT + ' клиентов · ' + studio.max_verticals + ' вертикалей';
+  await loadVerticals();
+  await loadTenants();
 }
 
-.btn-ok { background: var(--ok); color: #06171C; }
-.btn-small { padding: 7px 12px; font-size: 0.8rem; border-radius: 8px; }
-.btn-large { padding: 15px 28px; font-size: 1rem; border-radius: 12px; }
-.btn-block { width: 100%; }
-
-/* ---------- ИНПУТЫ ---------- */
-.input,
-input[type="text"], input[type="email"], input[type="tel"],
-input[type="number"], input[type="password"], input[type="date"],
-input[type="time"], select, textarea {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: 9px;
-  border: 1px solid var(--line);
-  background: var(--bg-sunken);
-  color: var(--fg);
-  font-size: 0.94rem;
-  font-family: inherit;
-  transition: all 0.15s ease;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.input:focus,
-input:focus, select:focus, textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: var(--shadow-glow);
-  background: var(--bg-elev);
-}
-.input::placeholder, input::placeholder, textarea::placeholder { color: var(--fg-dim3); }
-
-select.input, select {
-  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 12px;
-  padding-right: 36px;
+async function loadVerticals() {
+  try {
+    const res = await api('/api/studio/verticals');
+    verticals = res.verticals || [];
+    const sel = document.getElementById('newVertical');
+    sel.innerHTML = verticals.map(function(v) {
+      return '<option value="' + v.code + '">' + (v.client_icon || '') + ' ' + v.name + '</option>';
+    }).join('');
+  } catch (e) {
+    console.error('Failed to load verticals', e);
+  }
 }
 
-.field { margin-bottom: 14px; }
-.field label, label {
-  display: block;
-  font-size: 0.82rem;
-  color: var(--fg-dim);
-  margin-bottom: 6px;
-  font-weight: 500;
-}
-
-/* ---------- КАРТОЧКИ ---------- */
-.card {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 14px;
-  transition: all 0.2s ease;
-  position: relative;
-}
-.card-hover:hover {
-  border-color: var(--accent-strong);
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
-}
-
-/* Премиум-карточка с градиентом */
-.card-premium {
-  background: linear-gradient(135deg, var(--bg-elev), var(--bg-sunken));
-  border: 1px solid var(--line-strong);
-  border-radius: 16px;
-  padding: 22px;
-  position: relative;
-  overflow: hidden;
-}
-.card-premium::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--accent), transparent);
-  opacity: 0.5;
-}
-
-/* Карточка с glow на hover */
-.card-glow {
-  transition: all 0.3s ease;
-}
-.card-glow:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 40px var(--accent-dim), var(--shadow-lg);
-  transform: translateY(-3px);
-}
-
-/* ---------- СТАТИСТИКА (с иконками и градиентами) ---------- */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.stat {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.stat::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: radial-gradient(circle at top right, var(--accent-dim), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.stat:hover {
-  border-color: var(--accent-strong);
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-lg);
-}
-.stat:hover::before { opacity: 1; }
-
-.stat .stat-icon {
-  font-size: 1.6rem;
-  margin-bottom: 8px;
-  display: inline-block;
-  filter: drop-shadow(0 0 8px var(--accent-dim));
-}
-.stat .lbl {
-  font-size: 0.72rem;
-  color: var(--fg-dim2);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 8px;
-  font-weight: 600;
-  position: relative;
-  z-index: 1;
-}
-.stat .val {
-  font-size: 1.7rem;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--fg);
-  letter-spacing: -0.03em;
-  font-variant-numeric: tabular-nums;
-  line-height: 1.1;
-  position: relative;
-  z-index: 1;
-}
-.stat .val.accent { color: var(--accent); }
-.stat .val.ok { color: var(--ok); }
-.stat .val.warn { color: var(--warn); }
-.stat .val.danger { color: var(--danger); }
-.stat .sub {
-  font-size: 0.78rem;
-  color: var(--fg-dim2);
-  margin-top: 6px;
-  position: relative;
-  z-index: 1;
-}
-
-/* Градиентная статистика (акцентная) */
-.stat.stat-accent {
-  background: linear-gradient(135deg, var(--accent-dim), transparent 80%);
-  border-color: var(--accent-strong);
-}
-.stat.stat-accent .val { color: var(--accent); }
-
-.stat.stat-ok {
-  background: linear-gradient(135deg, var(--ok-dim), transparent 80%);
-  border-color: var(--ok-strong);
-}
-.stat.stat-ok .val { color: var(--ok); }
-
-/* ---------- КАРТОЧКИ-ВЕРТИКАЛИ (для лендинга и выбора) ---------- */
-.vertical-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-}
-.vertical-card {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px 14px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-.vertical-card::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, var(--accent-dim), transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-.vertical-card:hover {
-  border-color: var(--accent);
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 40px var(--accent-dim);
-}
-.vertical-card:hover::after { opacity: 1; }
-.vertical-card.selected {
-  border-color: var(--accent);
-  background: linear-gradient(135deg, var(--accent-dim), transparent);
-  box-shadow: 0 0 0 3px var(--accent-dim);
-}
-.vertical-card .ico {
-  font-size: 2rem;
-  margin-bottom: 8px;
-  display: inline-block;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
-  transition: transform 0.3s ease;
-}
-.vertical-card:hover .ico { transform: scale(1.15) rotate(-5deg); }
-.vertical-card .name {
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--fg);
-}
-.vertical-card .sub {
-  font-size: 0.72rem;
-  color: var(--fg-dim2);
-  margin-top: 4px;
-}
-
-/* ---------- ТАБЛИЦЫ ---------- */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.86rem;
-}
-.table th, .table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: middle;
-}
-.table th {
-  color: var(--fg-dim2);
-  font-weight: 600;
-  font-size: 0.74rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-.table tr:last-child td { border-bottom: none; }
-.table tr { transition: background 0.15s ease; }
-.table tr:hover td { background: var(--bg-hover); }
-.table td.num {
-  text-align: right;
-  font-family: 'JetBrains Mono', monospace;
-  font-variant-numeric: tabular-nums;
-}
-.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-/* ---------- БЕЙДЖИ ---------- */
-.badge, .tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 14px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  background: var(--bg-active);
-  color: var(--fg-dim);
-}
-.badge-accent, .tag.confirmed { background: var(--accent-dim); color: var(--accent); }
-.badge-ok, .tag.completed { background: var(--ok-dim); color: var(--ok); }
-.badge-warn { background: var(--warn-dim); color: var(--warn); }
-.badge-danger, .tag.cancelled { background: var(--danger-dim); color: var(--danger); }
-.badge-inprogress, .tag.in_progress { background: var(--danger-dim); color: var(--danger); }
-
-.badge-start { background: var(--accent-dim); color: var(--accent); }
-.badge-business { background: var(--warn-dim); color: var(--warn); }
-.badge-enterprise { background: var(--ok-dim); color: var(--ok); }
-
-/* ---------- ТАБЫ ---------- */
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-  padding: 4px;
-  background: var(--bg-sunken);
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  width: fit-content;
-  max-width: 100%;
-}
-.tab {
-  padding: 9px 18px;
-  border-radius: 9px;
-  cursor: pointer;
-  font-size: 0.88rem;
-  color: var(--fg-dim);
-  background: transparent;
-  border: none;
-  font-family: inherit;
-  font-weight: 600;
-  transition: all 0.18s ease;
-  white-space: nowrap;
-  user-select: none;
-}
-.tab:hover:not(.active) { color: var(--fg); background: var(--bg-hover); }
-.tab.active {
-  background: var(--accent);
-  color: var(--accent-fg);
-  box-shadow: 0 4px 12px var(--accent-dim);
-}
-
-/* ---------- СООБЩЕНИЯ ---------- */
-.msg {
-  font-size: 0.86rem;
-  margin-top: 10px;
-  min-height: 18px;
-  color: var(--fg-dim);
-  transition: color 0.15s ease;
-}
-.msg.err { color: var(--danger); }
-.msg.ok { color: var(--ok); }
-.msg.warn { color: var(--warn); }
-
-/* ---------- ПУСТЫЕ СОСТОЯНИЯ ---------- */
-.empty {
-  text-align: center;
-  padding: 56px 20px;
-  color: var(--fg-dim2);
-  font-size: 0.9rem;
-}
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 14px;
-  opacity: 0.6;
-  display: inline-block;
-  animation: float 3s ease-in-out infinite;
-}
-.empty-title {
-  font-size: 1.05rem;
-  color: var(--fg);
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-
-/* ---------- МОДАЛКИ ---------- */
-.modal-bg {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-  animation: fadeIn 0.25s ease;
-}
-.modal-bg.show { display: flex; }
-.modal {
-  background: var(--bg-elev);
-  border: 1px solid var(--line-strong);
-  border-radius: 18px;
-  padding: 28px;
-  max-width: 520px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--line);
-  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-}
-.modal::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--accent), var(--ok));
-  border-radius: 18px 18px 0 0;
-}
-
-/* ---------- ФОРМЫ ---------- */
-.row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 10px;
-}
-.row > * { flex: 1; min-width: 0; }
-.row-narrow > * { flex: 0 0 auto; }
-.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-@media (max-width: 600px) { .row-2 { grid-template-columns: 1fr; } }
-
-/* ---------- ПЕРЕКЛЮЧАТЕЛЬ ТЕМЫ ---------- */
-.theme-toggle {
-  position: fixed;
-  top: 16px;
-  right: 16px;
-  z-index: 999;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  color: var(--fg);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.15rem;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-md);
-}
-.theme-toggle:hover {
-  border-color: var(--accent);
-  transform: rotate(20deg) scale(1.1);
-  box-shadow: 0 8px 24px var(--accent-dim);
-}
-
-/* ---------- ЗАГОЛОВОК ПАНЕЛИ ---------- */
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-.page-head h1 { margin: 0; }
-.page-head .sub { color: var(--fg-dim2); font-size: 0.85rem; margin-top: 4px; }
-
-/* ---------- ТОСТ ---------- */
-.toast-wrap {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  z-index: 2000;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  pointer-events: none;
-}
-.toast {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
-  border-radius: 10px;
-  padding: 14px 18px;
-  font-size: 0.9rem;
-  color: var(--fg);
-  box-shadow: var(--shadow-lg);
-  animation: slideUp 0.3s ease;
-  max-width: 340px;
-  pointer-events: auto;
-}
-.toast.ok { border-left-color: var(--ok); }
-.toast.err { border-left-color: var(--danger); }
-
-/* ---------- СКЕЛЕТОН ---------- */
-.skeleton {
-  background: linear-gradient(90deg, var(--bg-sunken) 25%, var(--bg-active) 50%, var(--bg-sunken) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: 6px;
-  height: 16px;
-  margin: 8px 0;
-}
-
-/* ---------- ГЕРОЙ-БЛОК (для лендинга и панелей) ---------- */
-.hero-card {
-  background:
-    radial-gradient(ellipse at top right, var(--accent-dim), transparent 60%),
-    linear-gradient(135deg, var(--bg-elev), var(--bg-sunken));
-  border: 1px solid var(--line-strong);
-  border-radius: 20px;
-  padding: 32px;
-  margin-bottom: 20px;
-  position: relative;
-  overflow: hidden;
-}
-.hero-card::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -20%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, var(--accent-strong), transparent 70%);
-  opacity: 0.3;
-  pointer-events: none;
-  animation: float 6s ease-in-out infinite;
-}
-.hero-card h1 { position: relative; z-index: 1; }
-.hero-card p { position: relative; z-index: 1; }
-
-/* ---------- УТИЛИТЫ ---------- */
-.mb-0 { margin-bottom: 0; }
-.mb-1 { margin-bottom: 8px; }
-.mb-2 { margin-bottom: 16px; }
-.mb-3 { margin-bottom: 24px; }
-.mt-1 { margin-top: 8px; }
-.mt-2 { margin-top: 16px; }
-.mt-3 { margin-top: 24px; }
-
-.text-dim { color: var(--fg-dim); }
-.text-dim2 { color: var(--fg-dim2); }
-.text-ok { color: var(--ok); }
-.text-danger { color: var(--danger); }
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.fw-700 { font-weight: 700; }
-
-.flex { display: flex; }
-.flex-between { display: flex; justify-content: space-between; align-items: center; }
-.flex-center { display: flex; align-items: center; justify-content: center; }
-.gap-1 { gap: 8px; }
-.gap-2 { gap: 16px; }
+async function loadTenants() {
+  const wrap = document.getElementById('tenantsWrap');
+  const msg = document.getElementById('mainMsg');
+  msg.textContent = '';
+  wrap.innerHTML = '<div class="empty"><div class="empty-title
