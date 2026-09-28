@@ -27,8 +27,6 @@
 </head>
 <body>
 
-<div style="position:fixed;top:10px;left:10px;background:#46C2E0;color:#000;padding:8px 14px;border-radius:8px;font-weight:700;z-index:9999;" id="debugBox">JS загружается…</div>
-
 <div class="container">
 
   <div id="loginView" style="max-width:480px;margin:60px auto 0;">
@@ -162,74 +160,7 @@ async function api(path, opts) {
   const data = await res.json().catch(function() { return null; });
   if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; err.data = data; throw err; }
   return data;
-}
-
-document.getElementById('loginBtn').addEventListener('click', async function() {
-  const key = document.getElementById('licenseKey').value.trim().toUpperCase();
-  const msg = document.getElementById('loginMsg');
-  if (!key) { msg.className = 'msg err'; msg.textContent = 'Введите лицензионный ключ'; return; }
-  msg.className = 'msg'; msg.textContent = 'Проверяем…';
-  try {
-    const res = await api('/api/studio/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ license_key: key })
-    });
-    token = res.token;
-    studio = res.studio;
-    localStorage.setItem('studio_token', token);
-    localStorage.setItem('studio_data', JSON.stringify(studio));
-    showMain();
-  } catch (e) {
-    if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ. Проверьте и попробуйте снова.';
-    else if (e.data && e.data.error === 'revoked') msg.textContent = 'Ключ отозван. Обратитесь к платформе.';
-    else msg.textContent = 'Ошибка входа. Попробуйте ещё раз.';
-    msg.className = 'msg err';
-  }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', function() {
-  token = ''; studio = null;
-  localStorage.removeItem('studio_token');
-  localStorage.removeItem('studio_data');
-  document.getElementById('mainView').style.display = 'none';
-  document.getElementById('loginView').style.display = '';
-  document.getElementById('licenseKey').value = '';
-});
-
-async function showMain() {
-  document.getElementById('loginView').style.display = 'none';
-  document.getElementById('mainView').style.display = '';
-  document.getElementById('studioName').textContent = studio.name || ('Студия #' + studio.id);
-  const tierNames = { start: 'Start', business: 'Business', enterprise: 'Enterprise' };
-  const tierEl = document.getElementById('studioTier');
-  tierEl.textContent = tierNames[studio.tier] || studio.tier;
-  tierEl.className = 'tier-badge tier-' + studio.tier;
-  const maxT = studio.max_tenants > 0 ? studio.max_tenants : '∞';
-  document.getElementById('studioLimits').textContent = 'до ' + maxT + ' клиентов · ' + studio.max_verticals + ' вертикалей';
-  await loadVerticals();
-  await loadTenants();
-}
-
-async function loadVerticals() {
-  try {
-    const res = await api('/api/studio/verticals');
-    verticals = res.verticals || [];
-    const sel = document.getElementById('newVertical');
-    sel.innerHTML = verticals.map(function(v) {
-      return '<option value="' + v.code + '">' + (v.client_icon || '') + ' ' + v.name + '</option>';
-    }).join('');
-  } catch (e) {
-    console.error('Failed to load verticals', e);
-  }
-}
-
-async function loadTenants() {
-  const wrap = document.getElementById('tenantsWrap');
-  const msg = document.getElementById('mainMsg');
-  msg.textContent = '';
-  wrap.innerHTML = '<div class="empty"><div class="empty-title
-document.getElementById('loginBtn').addEventListener('click', async function() {
+}document.getElementById('loginBtn').addEventListener('click', async function() {
   const key = document.getElementById('licenseKey').value.trim().toUpperCase();
   const msg = document.getElementById('loginMsg');
   if (!key) { msg.className = 'msg err'; msg.textContent = 'Введите лицензионный ключ'; return; }
@@ -369,8 +300,7 @@ async function loadTenants() {
 
   document.getElementById('statRevenue').textContent = '0 ₽';
   document.getElementById('statCommission').textContent = '0 ₽';
-  }
-  document.getElementById('addTenantBtn').addEventListener('click', function() {
+      }document.getElementById('addTenantBtn').addEventListener('click', function() {
   document.getElementById('addModal').classList.add('show');
   document.getElementById('formBlock').style.display = '';
   document.getElementById('createdResult').style.display = 'none';
@@ -456,6 +386,5 @@ document.getElementById('createTenantBtn').addEventListener('click', async funct
   }
 })();
 </script>
-<script src="/theme.js"></script>
 </body>
 </html>
