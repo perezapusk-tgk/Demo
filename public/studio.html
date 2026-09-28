@@ -6,48 +6,22 @@
 <title>RapidLink — Панель студии</title>
 <link rel="stylesheet" href="/styles.css">
 <style>
-.tenant {
-  background: var(--bg-sunken);
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  flex-wrap: wrap;
-  transition: all 0.2s ease;
-}
+.tenant { background: var(--bg-sunken); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; transition: all 0.2s ease; }
 .tenant:hover { border-color: var(--accent-strong); transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .tenant .info { flex: 1; min-width: 220px; }
 .tenant .name { font-weight: 700; font-size: 1rem; margin-bottom: 4px; color: var(--fg); }
 .tenant .sub { font-size: 0.82rem; color: var(--fg-dim); margin-bottom: 4px; }
 .tenant .link { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--accent); word-break: break-all; margin-top: 6px; }
 .tenant .actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
-
 .tier-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
 .tier-start { background: var(--accent-dim); color: var(--accent); }
 .tier-business { background: var(--warn-dim); color: var(--warn); }
 .tier-enterprise { background: var(--ok-dim); color: var(--ok); }
-
 .result-box { background: var(--ok-dim); border: 1px solid var(--ok); border-radius: 10px; padding: 16px; margin: 14px 0; }
 .result-box .label { font-size: 0.75rem; color: var(--fg-dim2); text-transform: uppercase; margin-bottom: 4px; font-weight: 600; letter-spacing: 0.04em; }
 .result-box .value { font-family: 'JetBrains Mono', monospace; font-size: 0.92rem; color: var(--fg); margin-bottom: 12px; word-break: break-all; }
 .subdomain-preview { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--fg-dim2); margin-top: 6px; }
-
-.demo-link {
-  background: var(--bg-elev);
-  border: 1px solid var(--line);
-  padding: 14px;
-  border-radius: 10px;
-  text-decoration: none;
-  color: var(--fg);
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  transition: all 0.2s ease;
-}
+.demo-link { background: var(--bg-elev); border: 1px solid var(--line); padding: 14px; border-radius: 10px; text-decoration: none; color: var(--fg); display: flex; align-items: center; gap: 12px; transition: all 0.2s ease; }
 .demo-link:hover { border-color: var(--accent); transform: translateX(3px); box-shadow: var(--shadow-md); }
 .demo-link .ico { font-size: 1.6rem; }
 .demo-link .lbl { display: block; font-size: 0.72rem; color: var(--fg-dim2); text-transform: uppercase; letter-spacing: 0.04em; }
@@ -55,9 +29,7 @@
 </style>
 </head>
 <body>
-
-<div class="container">
-
+  <div class="container">
   <div id="loginView" style="max-width:480px;margin:60px auto 0;">
     <h1>Rapid<span style="color:var(--accent);">Link</span></h1>
     <p style="color:var(--fg-dim);margin:6px 0 24px;font-size:0.9rem;">Панель управления студии</p>
@@ -69,38 +41,29 @@
       <button class="btn btn-block" id="loginBtn">Войти</button>
       <div class="msg" id="loginMsg"></div>
     </div>
-    <p style="text-align:center;margin-top:16px;color:var(--fg-dim2);font-size:0.78rem;">
-      Ключ выдаётся после покупки тарифа.
-    </p>
+    <p style="text-align:center;margin-top:16px;color:var(--fg-dim2);font-size:0.78rem;">Ключ выдаётся после покупки тарифа.</p>
   </div>
 
   <div id="mainView" style="display:none;">
-
     <div id="welcomeCard" class="card" style="display:none;margin-bottom:18px;background:linear-gradient(135deg,var(--accent-dim),var(--ok-dim));border-color:var(--accent-strong);">
       <h2 style="margin-top:0;color:var(--fg);">👋 Добро пожаловать в RapidLink!</h2>
-      <p style="color:var(--fg-dim);font-size:0.94rem;margin-bottom:16px;">Мы создали для вас демо-клиента — посмотрите, как работает движок. Откройте любой из этих разделов:</p>
+      <p style="color:var(--fg-dim);font-size:0.94rem;margin-bottom:16px;">Мы создали для вас демо-клиента — посмотрите, как работает движок.</p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:16px;">
         <a href="#" id="welcomeClientLink" target="_blank" class="demo-link">
           <span class="ico">🌐</span>
-          <span>
-            <span class="lbl">Клиент</span>
-            <span class="val">Запись на мойку</span>
-          </span>
+          <span><span class="lbl">Клиент</span><span class="val">Запись на мойку</span></span>
         </a>
         <a href="#" id="welcomeAdminLink" target="_blank" class="demo-link">
           <span class="ico">🔐</span>
-          <span>
-            <span class="lbl">Админка</span>
-            <span class="val">Управление</span>
-          </span>
+          <span><span class="lbl">Админка</span><span class="val">Управление</span></span>
         </a>
       </div>
       <div style="font-size:0.82rem;color:var(--fg-dim2);margin-bottom:12px;">
-        <b style="color:var(--fg);">Демо-логин админки:</b>
-        <span id="welcomeDemoLogin" class="mono" style="color:var(--accent);">demo_1</span> /
-        <span id="welcomeDemoPass" class="mono" style="color:var(--accent);">demo123</span>
+        <b style="color:var(--fg);">Демо-логин:</b>
+        <span id="welcomeDemoLogin" class="mono" style="color:var(--accent);">—</span> /
+        <span id="welcomeDemoPass" class="mono" style="color:var(--accent);">—</span>
       </div>
-      <p style="color:var(--fg-dim2);font-size:0.82rem;margin-bottom:14px;">Когда будете готовы — нажмите «+ Добавить клиента» и создайте своего первого реального клиента.</p>
+      <p style="color:var(--fg-dim2);font-size:0.82rem;margin-bottom:14px;">Когда будете готовы — создайте своего первого реального клиента.</p>
       <button class="btn btn-small btn-ghost" id="welcomeCloseBtn">Понятно, скрыть</button>
     </div>
 
@@ -132,7 +95,7 @@
         <div class="stat-icon">📊</div>
         <div class="lbl">Ваша комиссия (3%)</div>
         <div class="val ok" id="statCommission">0 ₽</div>
-        <div class="sub">к оплате платформе</div>
+        <div class="sub">к оплате</div>
       </div>
     </div>
 
@@ -155,7 +118,6 @@
 <div class="modal-bg" id="addModal">
   <div class="modal">
     <h2 style="margin-bottom:18px;">Новый клиент</h2>
-
     <div id="formBlock">
       <div class="field">
         <label>Поддомен</label>
@@ -186,7 +148,6 @@
         <button class="btn" id="createTenantBtn">Создать клиента</button>
       </div>
     </div>
-
     <div id="createdResult" style="display:none;">
       <div class="result-box">
         <div class="label">Сайт клиента</div>
@@ -195,7 +156,7 @@
         <div class="value" id="resultLogin">—</div>
         <div class="label">Пароль админки</div>
         <div class="value" id="resultPassword">—</div>
-        <div style="font-size:0.78rem;color:var(--fg-dim2);">Сохраните логин и пароль — показываются один раз.</div>
+        <div style="font-size:0.78rem;color:var(--fg-dim2);">Сохраните — показываются один раз.</div>
       </div>
       <button class="btn btn-block" id="closeResultBtn">Готово</button>
     </div>
@@ -207,9 +168,7 @@ const API = '';
 let token = '';
 let studio = null;
 let verticals = [];
-
 function rub(n) { return (n || 0).toLocaleString('ru-RU') + ' ₽'; }
-
 async function api(path, opts) {
   opts = opts || {};
   opts.headers = opts.headers || {};
@@ -218,7 +177,8 @@ async function api(path, opts) {
   const data = await res.json().catch(function() { return null; });
   if (!res.ok) { const err = new Error((data && data.error) || 'fail'); err.status = res.status; err.data = data; throw err; }
   return data;
-}document.getElementById('loginBtn').addEventListener('click', async function() {
+}
+  document.getElementById('loginBtn').addEventListener('click', async function() {
   const key = document.getElementById('licenseKey').value.trim().toUpperCase();
   const msg = document.getElementById('loginMsg');
   if (!key) { msg.className = 'msg err'; msg.textContent = 'Введите лицензионный ключ'; return; }
@@ -234,13 +194,11 @@ async function api(path, opts) {
     localStorage.setItem('studio_token', token);
     localStorage.setItem('studio_data', JSON.stringify(studio));
     if (res.is_new) localStorage.removeItem('studio_welcome_' + studio.id);
-    if (res.demo_login) localStorage.setItem('studio_demo_login_' + studio.id, res.demo_login);
-    if (res.demo_password) localStorage.setItem('studio_demo_pass_' + studio.id, res.demo_password);
     showMain();
   } catch (e) {
-    if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ. Проверьте и попробуйте снова.';
-    else if (e.data && e.data.error === 'revoked') msg.textContent = 'Ключ отозван. Обратитесь к платформе.';
-    else msg.textContent = 'Ошибка входа. Попробуйте ещё раз.';
+    if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ';
+    else if (e.data && e.data.error === 'revoked') msg.textContent = 'Ключ отозван';
+    else msg.textContent = 'Ошибка входа';
     msg.className = 'msg err';
   }
 });
@@ -266,7 +224,6 @@ async function showMain() {
   document.getElementById('studioLimits').textContent = 'до ' + maxT + ' клиентов · ' + studio.max_verticals + ' вертикалей';
   await loadVerticals();
   await loadTenants();
-
   document.getElementById('welcomeCloseBtn').addEventListener('click', function() {
     document.getElementById('welcomeCard').style.display = 'none';
     localStorage.setItem('studio_welcome_' + studio.id, '1');
@@ -281,9 +238,7 @@ async function loadVerticals() {
     sel.innerHTML = verticals.map(function(v) {
       return '<option value="' + v.code + '">' + (v.client_icon || '') + ' ' + v.name + '</option>';
     }).join('');
-  } catch (e) {
-    console.error('Failed to load verticals', e);
-  }
+  } catch (e) { console.error('Verticals load failed', e); }
 }
 
 async function loadTenants() {
@@ -305,7 +260,6 @@ async function loadTenants() {
   const list = window.__tenants.filter(function(t) { return t.status === 'active'; });
   document.getElementById('statTenants').textContent = list.length;
 
-  // Приветствие — если есть демо-тенант и студия его ещё не видела
   var hasSeenWelcome = localStorage.getItem('studio_welcome_' + studio.id);
   var demoTenant = window.__tenants.find(function(t) { return t.subdomain.indexOf('demo-') === 0; });
   if (!hasSeenWelcome && demoTenant) {
@@ -313,18 +267,10 @@ async function loadTenants() {
     document.getElementById('welcomeClientLink').href = 'https://' + demoTenant.subdomain + '.' + baseDomain + '/';
     document.getElementById('welcomeAdminLink').href = 'https://' + demoTenant.subdomain + '.' + baseDomain + '/admin.html';
     document.getElementById('welcomeCard').style.display = '';
-    var demoLogin = localStorage.getItem('studio_demo_login_' + studio.id) || 'demo_' + studio.id;
-    var demoPass = localStorage.getItem('studio_demo_pass_' + studio.id) || 'demo' + studio.id;
-    document.getElementById('welcomeDemoLogin').textContent = demoLogin;
-    document.getElementById('welcomeDemoPass').textContent = demoPass;
   }
 
   if (list.length === 0) {
-    wrap.innerHTML = '<div class="empty">' +
-      '<div class="empty-icon">📭</div>' +
-      '<div class="empty-title">Пока нет клиентов</div>' +
-      '<div>Нажмите «+ Добавить клиента», чтобы подключить первую мойку или барбершоп.</div>' +
-    '</div>';
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-title">Пока нет клиентов</div><div>Нажмите «+ Добавить клиента»</div></div>';
     document.getElementById('statRevenue').textContent = '0 ₽';
     document.getElementById('statCommission').textContent = '0 ₽';
     return;
@@ -332,15 +278,12 @@ async function loadTenants() {
 
   wrap.innerHTML = '';
   const baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
-
   list.forEach(function(t) {
     const div = document.createElement('div');
     div.className = 'tenant';
     const isDemo = t.subdomain.indexOf('demo-') === 0;
-
     const siteUrl = 'https://' + t.subdomain + '.' + baseDomain + '/';
     const adminUrl = 'https://' + t.subdomain + '.' + baseDomain + '/admin.html';
-
     div.innerHTML =
       '<div class="info">' +
         '<div class="name">' + t.business_name + ' <span class="badge badge-accent">' + t.vertical_code + '</span>' + (isDemo ? ' <span class="badge badge-warn">ДЕМО</span>' : '') + '</div>' +
@@ -352,37 +295,28 @@ async function loadTenants() {
         '<button class="btn btn-small btn-ghost" data-copy="' + siteUrl + '">Копировать</button>' +
         '<button class="btn btn-small btn-danger" data-archive="' + t.id + '">В архив</button>' +
       '</div>';
-
     wrap.appendChild(div);
   });
 
   wrap.querySelectorAll('button[data-copy]').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      const text = btn.dataset.copy;
-      navigator.clipboard.writeText(text).then(function() {
-        btn.textContent = '✓ Скопировано';
-        setTimeout(function() { btn.textContent = 'Копировать'; }, 1500);
-      }).catch(function() { alert('Ссылка: ' + text); });
+      navigator.clipboard.writeText(btn.dataset.copy).then(function() {
+        btn.textContent = '✓';
+        setTimeout(function() { btn.textContent = 'Копировать'; }, 1200);
+      }).catch(function() { alert(btn.dataset.copy); });
     });
   });
 
   wrap.querySelectorAll('button[data-archive]').forEach(function(btn) {
     btn.addEventListener('click', async function() {
-      if (!confirm('Отправить клиента в архив? Сайт перестанет работать.')) return;
+      if (!confirm('В архив?')) return;
       btn.disabled = true;
-      try {
-        await api('/api/studio/tenants/' + btn.dataset.archive, { method: 'DELETE' });
-        loadTenants();
-      } catch (e) {
-        alert('Ошибка: ' + e.message);
-        btn.disabled = false;
-      }
+      try { await api('/api/studio/tenants/' + btn.dataset.archive, { method: 'DELETE' }); loadTenants(); }
+      catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
     });
   });
-
-  document.getElementById('statRevenue').textContent = '0 ₽';
-  document.getElementById('statCommission').textContent = '0 ₽';
-  }document.getElementById('addTenantBtn').addEventListener('click', function() {
+        }
+  document.getElementById('addTenantBtn').addEventListener('click', function() {
   document.getElementById('addModal').classList.add('show');
   document.getElementById('formBlock').style.display = '';
   document.getElementById('createdResult').style.display = 'none';
@@ -418,38 +352,31 @@ document.getElementById('createTenantBtn').addEventListener('click', async funct
   const contact_name = document.getElementById('newContactName').value.trim();
   const contact_phone = document.getElementById('newContactPhone').value.trim();
   const msg = document.getElementById('addMsg');
-
   if (!subdomain || !/^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/.test(subdomain)) {
-    msg.className = 'msg err'; msg.textContent = 'Поддомен: только латиница, цифры и дефис, 3–32 символа';
+    msg.className = 'msg err'; msg.textContent = 'Поддомен: латиница, цифры, дефис';
     return;
   }
-  if (!business_name) { msg.className = 'msg err'; msg.textContent = 'Укажите название бизнеса'; return; }
-
+  if (!business_name) { msg.className = 'msg err'; msg.textContent = 'Укажите название'; return; }
   const btn = document.getElementById('createTenantBtn');
-  btn.disabled = true; btn.textContent = 'Создаём…';
-  msg.textContent = '';
-
+  btn.disabled = true; btn.textContent = 'Создаём…'; msg.textContent = '';
   try {
     const res = await api('/api/studio/tenants', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ subdomain: subdomain, vertical_code: vertical_code, business_name: business_name, contact_name: contact_name, contact_phone: contact_phone })
     });
-
     const baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
     document.getElementById('resultUrl').textContent = 'https://' + subdomain + '.' + baseDomain + '/';
     document.getElementById('resultLogin').textContent = res.admin_login;
     document.getElementById('resultPassword').textContent = res.admin_password;
     document.getElementById('formBlock').style.display = 'none';
     document.getElementById('createdResult').style.display = '';
-    msg.className = 'msg ok';
-    msg.textContent = '✓ Клиент создан';
+    msg.className = 'msg ok'; msg.textContent = '✓ Клиент создан';
   } catch (e) {
     let text = 'Не удалось создать: ' + e.message;
-    if (e.data && e.data.error === 'subdomain_taken') text = 'Такой поддомен уже занят';
-    if (e.data && e.data.error === 'tenant_limit_reached') text = 'Достигнут лимит клиентов (максимум ' + e.data.max + ')';
-    msg.className = 'msg err';
-    msg.textContent = text;
+    if (e.data && e.data.error === 'subdomain_taken') text = 'Поддомен занят';
+    if (e.data && e.data.error === 'tenant_limit_reached') text = 'Лимит клиентов: ' + e.data.max;
+    msg.className = 'msg err'; msg.textContent = text;
   }
   btn.disabled = false; btn.textContent = 'Создать клиента';
 });
@@ -467,7 +394,7 @@ document.getElementById('createTenantBtn').addEventListener('click', async funct
     });
   }
 })();
-</script>
+  </script>
 <script src="/theme.js"></script>
 </body>
 </html>
