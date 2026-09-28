@@ -28,6 +28,8 @@
 </head>
 <body>
 
+<div style="position:fixed;top:10px;left:10px;background:#46C2E0;color:#000;padding:8px 14px;border-radius:8px;font-weight:700;z-index:9999;" id="debugBox">JS загружается…</div>
+
 <div class="container">
 
   <div id="loginView" style="max-width:480px;margin:60px auto 0;">
@@ -454,6 +456,7 @@ document.getElementById('createTenantBtn').addEventListener('click', async funct
     });
   }
 })();
+document.getElementById('debugBox').textContent = 'JS полностью загружен ✓';
 </script>
 </body>
 </html>
