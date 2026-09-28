@@ -329,40 +329,80 @@ async function loadBookings() {
   list.innerHTML = '';
   bookings.forEach(function(b) {
     let services = b.services_json;
-    try { services = JSON.parse(b.services_json).join(', '); } catch (e) {}
+async function loadBookings() {
+  const d = document.getElementById('date').value;
+  const msg = document.getElementById('bookingsMsg');
+  const list = document.getElementById('bookingsList');
+  msg.textContent = '';
+  list.innerHTML = '<div class="empty"><div class="empty-title">Загружаем…</div></div>';
 
-    const div = document.createElement('div');
-    div.className = 'book-row';
+  let res;
+  try {
+    res = await api('/api/admin/bookings?date=' + d);
+  } catch (e) {
+    msg.className = 'msg err';
+    msg.textContent = 'Не удалось загрузить записи.';
+    list.innerHTML = '';
+    return;
+  }
+
+  const bookings = res.bookings || [];
+  let revenue = 0, done = 0, confirmed = 0;
+  bookings.forEach(function(b) {
+    if (b.status === 'completed') done++;
+    if (b.status === 'confirmed' || b.status === 'completed') {
+      revenue += b.total;
+      confirmed++;
+    }
+  });
+  document.getElementById('statBookings').textContent = bookings.length;
+  document.getElementById('statDayRevenue').textContent = rub(revenue);
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statAvg').textContent = confirmed > 0 ? rub(Math.round(revenue / confirmed)) : '0 ₽';
+
+  if (bookings.length === 0) {
+    list.innerHTML = '<div class="empty">' +
+      '<div class="empty-icon">📭</div>' +
+      '<div class="empty-title">На эту дату записей нет</div>' +
+      '<div>Выберите другую дату или подождите новых клиентов.</div>' +
+    '</div>';
+    return;
+  }
+
+  let html = '<div class="card card-pad-0"><div class="table-wrap">';
+  html += '<table class="table"><thead><tr>';
+  html += '<th>Код</th><th>Клиент</th><th>Телефон</th><th>Класс</th><th>Услуги</th><th>Время</th><th>Сумма</th><th>Статус</th><th>Мойщик</th><th></th>';
+  html += '</tr></thead><tbody>';
+
+  bookings.forEach(function(b) {
+    let services = b.services_json;
+    try { services = JSON.parse(b.services_json).join(', '); } catch (e) {}
 
     const statusClass = b.status === 'confirmed' ? 'badge-accent' : (b.status === 'completed' ? 'badge-ok' : 'badge-danger');
 
-    div.innerHTML =
-      '<div class="top">' +
-        '<div>' +
-          '<div class="code">№ ' + b.booking_code + '</div>' +
-          '<div class="name-line">' + b.name + ' · ' + b.phone + '</div>' +
-          '<div class="sub">' + (b.class_name || '') + ' · ' + services + '</div>' +
-          '<div class="sub">' + String(b.hour).padStart(2, '0') + ':00</div>' +
-        '</div>' +
-        '<div style="text-align:right;">' +
-          '<div class="price">' + rub(b.total) + '</div>' +
-          '<span class="badge ' + statusClass + '" style="margin-top:6px;">' + b.status + '</span>' +
-        '</div>' +
-      '</div>' +
-      '<div class="bottom">' +
-        '<select class="input" style="max-width:200px;" data-washer="' + b.id + '">' +
-          '<option value="">— мойщик —</option>' +
-          (window.__washers || []).map(function(w) {
-            return '<option value="' + w.id + '"' + (w.id === b.assigned_washer_id ? ' selected' : '') + '>' + w.name + '</option>';
-          }).join('') +
-        '</select>' +
-        '<div class="actions">' +
-          (b.status === 'confirmed' ? '<button class="btn btn-small btn-ok" data-done="' + b.id + '">✓ Готова</button>' : '') +
-        '</div>' +
-      '</div>';
-
-    list.appendChild(div);
+    html += '<tr>' +
+      '<td><span class="mono" style="color:var(--accent);font-weight:700;">' + b.booking_code + '</span></td>' +
+      '<td><b>' + b.name + '</b></td>' +
+      '<td class="mono" style="font-size:0.82rem;">' + b.phone + '</td>' +
+      '<td class="text-dim2">' + (b.class_name || '') + '</td>' +
+      '<td class="text-dim2" style="max-width:220px;font-size:0.82rem;">' + services + '</td>' +
+      '<td class="mono">' + String(b.hour).padStart(2, '0') + ':00</td>' +
+      '<td class="num"><b>' + rub(b.total) + '</b></td>' +
+      '<td><span class="badge ' + statusClass + '">' + b.status + '</span></td>' +
+      '<td><select class="input" style="min-width:150px;padding:6px 8px;font-size:0.82rem;" data-washer="' + b.id + '">' +
+        '<option value="">—</option>' +
+        (window.__washers || []).map(function(w) {
+          return '<option value="' + w.id + '"' + (w.id === b.assigned_washer_id ? ' selected' : '') + '>' + w.name + '</option>';
+        }).join('') +
+      '</select></td>' +
+      '<td style="white-space:nowrap;">' +
+        (b.status === 'confirmed' ? '<button class="btn btn-small btn-ok" data-done="' + b.id + '">✓ Готова</button>' : '') +
+      '</td>' +
+    '</tr>';
   });
+
+  html += '</tbody></table></div></div>';
+  list.innerHTML = html;
 
   list.querySelectorAll('select[data-washer]').forEach(function(sel) {
     sel.addEventListener('change', async function() {
@@ -386,7 +426,7 @@ async function loadBookings() {
       } catch (e) { alert('Ошибка: ' + e.message); btn.disabled = false; }
     });
   });
-}
+      }
 
 document.getElementById('loadBtn').addEventListener('click', loadBookings);
 document.getElementById('exportBtn').addEventListener('click', function() {
