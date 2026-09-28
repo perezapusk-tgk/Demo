@@ -228,3 +228,232 @@ async function loadTenants() {
   const msg = document.getElementById('mainMsg');
   msg.textContent = '';
   wrap.innerHTML = '<div class="empty"><div class="empty-title
+document.getElementById('loginBtn').addEventListener('click', async function() {
+  const key = document.getElementById('licenseKey').value.trim().toUpperCase();
+  const msg = document.getElementById('loginMsg');
+  if (!key) { msg.className = 'msg err'; msg.textContent = 'Введите лицензионный ключ'; return; }
+  msg.className = 'msg'; msg.textContent = 'Проверяем…';
+  try {
+    const res = await api('/api/studio/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ license_key: key })
+    });
+    token = res.token;
+    studio = res.studio;
+    localStorage.setItem('studio_token', token);
+    localStorage.setItem('studio_data', JSON.stringify(studio));
+    showMain();
+  } catch (e) {
+    if (e.data && e.data.error === 'invalid_license') msg.textContent = 'Неверный ключ. Проверьте и попробуйте снова.';
+    else if (e.data && e.data.error === 'revoked') msg.textContent = 'Ключ отозван. Обратитесь к платформе.';
+    else msg.textContent = 'Ошибка входа. Попробуйте ещё раз.';
+    msg.className = 'msg err';
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', function() {
+  token = ''; studio = null;
+  localStorage.removeItem('studio_token');
+  localStorage.removeItem('studio_data');
+  document.getElementById('mainView').style.display = 'none';
+  document.getElementById('loginView').style.display = '';
+  document.getElementById('licenseKey').value = '';
+});
+
+async function showMain() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('mainView').style.display = '';
+  document.getElementById('studioName').textContent = studio.name || ('Студия #' + studio.id);
+  const tierNames = { start: 'Start', business: 'Business', enterprise: 'Enterprise' };
+  const tierEl = document.getElementById('studioTier');
+  tierEl.textContent = tierNames[studio.tier] || studio.tier;
+  tierEl.className = 'tier-badge tier-' + studio.tier;
+  const maxT = studio.max_tenants > 0 ? studio.max_tenants : '∞';
+  document.getElementById('studioLimits').textContent = 'до ' + maxT + ' клиентов · ' + studio.max_verticals + ' вертикалей';
+  await loadVerticals();
+  await loadTenants();
+}
+
+async function loadVerticals() {
+  try {
+    const res = await api('/api/studio/verticals');
+    verticals = res.verticals || [];
+    const sel = document.getElementById('newVertical');
+    sel.innerHTML = verticals.map(function(v) {
+      return '<option value="' + v.code + '">' + (v.client_icon || '') + ' ' + v.name + '</option>';
+    }).join('');
+  } catch (e) {
+    console.error('Failed to load verticals', e);
+  }
+}
+
+async function loadTenants() {
+  const wrap = document.getElementById('tenantsWrap');
+  const msg = document.getElementById('mainMsg');
+  msg.textContent = '';
+  wrap.innerHTML = '<div class="empty"><div class="empty-title">Загружаем…</div></div>';
+
+  let res;
+  try {
+    res = await api('/api/studio/tenants');
+  } catch (e) {
+    if (e.status === 401) { document.getElementById('logoutBtn').click(); return; }
+    wrap.innerHTML = '<div class="empty"><div class="empty-title">Не удалось загрузить</div></div>';
+    return;
+  }
+
+  const list = (res.tenants || []).filter(function(t) { return t.status === 'active'; });
+  document.getElementById('statTenants').textContent = list.length;
+
+  if (list.length === 0) {
+    wrap.innerHTML = '<div class="empty">' +
+      '<div class="empty-icon">📭</div>' +
+      '<div class="empty-title">Пока нет клиентов</div>' +
+      '<div>Нажмите «+ Добавить клиента», чтобы подключить первую мойку или барбершоп.</div>' +
+    '</div>';
+    document.getElementById('statRevenue').textContent = '0 ₽';
+    document.getElementById('statCommission').textContent = '0 ₽';
+    return;
+  }
+
+  wrap.innerHTML = '';
+  const baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
+
+  list.forEach(function(t) {
+    const div = document.createElement('div');
+    div.className = 'tenant';
+
+    const siteUrl = 'https://' + t.subdomain + '.' + baseDomain + '/';
+    const adminUrl = 'https://' + t.subdomain + '.' + baseDomain + '/admin.html';
+
+    div.innerHTML =
+      '<div class="info">' +
+        '<div class="name">' + t.business_name + ' <span class="badge badge-accent">' + t.vertical_code + '</span></div>' +
+        '<div class="sub">' + (t.contact_name ? t.contact_name + ' · ' : '') + (t.contact_phone || '') + '</div>' +
+        '<div class="link">' + siteUrl + '</div>' +
+        '<div class="link" style="color:var(--fg-dim2);">' + adminUrl + '</div>' +
+      '</div>' +
+      '<div class="actions">' +
+        '<button class="btn btn-small btn-ghost" data-copy="' + siteUrl + '">Копировать</button>' +
+        '<button class="btn btn-small btn-danger" data-archive="' + t.id + '">В архив</button>' +
+      '</div>';
+
+    wrap.appendChild(div);
+  });
+
+  wrap.querySelectorAll('button[data-copy]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      const text = btn.dataset.copy;
+      navigator.clipboard.writeText(text).then(function() {
+        btn.textContent = '✓ Скопировано';
+        setTimeout(function() { btn.textContent = 'Копировать'; }, 1500);
+      }).catch(function() { alert('Ссылка: ' + text); });
+    });
+  });
+
+  wrap.querySelectorAll('button[data-archive]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Отправить клиента в архив? Сайт перестанет работать.')) return;
+      btn.disabled = true;
+      try {
+        await api('/api/studio/tenants/' + btn.dataset.archive, { method: 'DELETE' });
+        loadTenants();
+      } catch (e) {
+        alert('Ошибка: ' + e.message);
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.getElementById('statRevenue').textContent = '0 ₽';
+  document.getElementById('statCommission').textContent = '0 ₽';
+  }
+  document.getElementById('addTenantBtn').addEventListener('click', function() {
+  document.getElementById('addModal').classList.add('show');
+  document.getElementById('formBlock').style.display = '';
+  document.getElementById('createdResult').style.display = 'none';
+  document.getElementById('addMsg').textContent = '';
+  document.getElementById('newSubdomain').value = '';
+  document.getElementById('newBusinessName').value = '';
+  document.getElementById('newContactName').value = '';
+  document.getElementById('newContactPhone').value = '';
+  updateSubdomainPreview();
+});
+
+document.getElementById('cancelAddBtn').addEventListener('click', function() {
+  document.getElementById('addModal').classList.remove('show');
+});
+
+document.getElementById('closeResultBtn').addEventListener('click', function() {
+  document.getElementById('addModal').classList.remove('show');
+  loadTenants();
+});
+
+document.getElementById('newSubdomain').addEventListener('input', updateSubdomainPreview);
+
+function updateSubdomainPreview() {
+  const v = document.getElementById('newSubdomain').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '');
+  const baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
+  document.getElementById('subdomainPreview').textContent = v ? ('→ ' + v + '.' + baseDomain) : '→ mywash.' + baseDomain;
+}
+
+document.getElementById('createTenantBtn').addEventListener('click', async function() {
+  const subdomain = document.getElementById('newSubdomain').value.trim().toLowerCase();
+  const vertical_code = document.getElementById('newVertical').value;
+  const business_name = document.getElementById('newBusinessName').value.trim();
+  const contact_name = document.getElementById('newContactName').value.trim();
+  const contact_phone = document.getElementById('newContactPhone').value.trim();
+  const msg = document.getElementById('addMsg');
+
+  if (!subdomain || !/^[a-z0-9][a-z0-9-]{1,30}[a-z0-9]$/.test(subdomain)) {
+    msg.className = 'msg err'; msg.textContent = 'Поддомен: только латиница, цифры и дефис, 3–32 символа';
+    return;
+  }
+  if (!business_name) { msg.className = 'msg err'; msg.textContent = 'Укажите название бизнеса'; return; }
+
+  const btn = document.getElementById('createTenantBtn');
+  btn.disabled = true; btn.textContent = 'Создаём…';
+  msg.textContent = '';
+
+  try {
+    const res = await api('/api/studio/tenants', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subdomain: subdomain, vertical_code: vertical_code, business_name: business_name, contact_name: contact_name, contact_phone: contact_phone })
+    });
+
+    const baseDomain = window.location.hostname.replace(/^demo-2-pkbp\./, 'rapidlink.');
+    document.getElementById('resultUrl').textContent = 'https://' + subdomain + '.' + baseDomain + '/';
+    document.getElementById('resultLogin').textContent = res.admin_login;
+    document.getElementById('resultPassword').textContent = res.admin_password;
+    document.getElementById('formBlock').style.display = 'none';
+    document.getElementById('createdResult').style.display = '';
+    msg.className = 'msg ok';
+    msg.textContent = '✓ Клиент создан';
+  } catch (e) {
+    let text = 'Не удалось создать: ' + e.message;
+    if (e.data && e.data.error === 'subdomain_taken') text = 'Такой поддомен уже занят';
+    if (e.data && e.data.error === 'tenant_limit_reached') text = 'Достигнут лимит клиентов (максимум ' + e.data.max + ')';
+    msg.className = 'msg err';
+    msg.textContent = text;
+  }
+  btn.disabled = false; btn.textContent = 'Создать клиента';
+});
+
+(function() {
+  const savedToken = localStorage.getItem('studio_token');
+  const savedData = localStorage.getItem('studio_data');
+  if (savedToken && savedData) {
+    token = savedToken;
+    try { studio = JSON.parse(savedData); } catch (e) { return; }
+    showMain().catch(function() {
+      token = ''; studio = null;
+      localStorage.removeItem('studio_token');
+      localStorage.removeItem('studio_data');
+    });
+  }
+})();
+</script>
+</body>
+</html>
